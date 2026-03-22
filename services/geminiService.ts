@@ -5,7 +5,9 @@ import { GoogleGenAI, Type } from "@google/genai";
  * Optimized for Mainland China: Local First, AI Enhanced.
  */
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+const ai = typeof process !== 'undefined' && process.env.GEMINI_API_KEY 
+  ? new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
+  : null;
 const SEGMENTS_CACHE_KEY = 'lexile_segments_cache_v2';
 
 export const playAmericanPronunciation = (word: string) => {
@@ -148,6 +150,7 @@ export const getWordSegments = async (words: string[]): Promise<Record<string, s
 };
 
 const fetchAISegments = async (words: string[]): Promise<Record<string, string[]>> => {
+  if (!ai) return {};
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
