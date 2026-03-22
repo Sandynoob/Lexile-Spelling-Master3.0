@@ -82,12 +82,21 @@ const App: React.FC = () => {
 
     // 4. Build the selection pool
     // Priority: Never tested > Tested longest ago
-    // Optimization: If we have enough words, exclude words from the very last session
+    // Optimization: If we have enough words, exclude words from the last 3 sessions
     let selectionPool = [...neverTested, ...previouslyTested];
     
-    if (historyRecords.length > 0 && selectionPool.length > count * 2) {
-      const lastSessionWords = new Set(historyRecords[0].results.map(r => r.word.toLowerCase()));
-      selectionPool = selectionPool.filter(w => !lastSessionWords.has(w.word.toLowerCase()));
+    if (historyRecords.length > 0 && selectionPool.length > count * 3) {
+      const recentSessionsCount = Math.min(3, historyRecords.length);
+      const recentWords = new Set<string>();
+      for (let i = 0; i < recentSessionsCount; i++) {
+        historyRecords[i].results.forEach(r => recentWords.add(r.word.toLowerCase()));
+      }
+      
+      const filteredPool = selectionPool.filter(w => !recentWords.has(w.word.toLowerCase()));
+      // Only use filtered pool if it still has enough words to provide variety
+      if (filteredPool.length >= count) {
+        selectionPool = filteredPool;
+      }
     }
 
     // 5. Shuffle the top candidates to avoid predictable patterns
