@@ -1,3 +1,4 @@
+import packageJson from '../package.json';
 
 export interface UpdateInfo {
   version: string;
@@ -5,7 +6,7 @@ export interface UpdateInfo {
   releaseNotes?: string;
 }
 
-const CURRENT_VERSION = '1.0.3';
+const CURRENT_VERSION = packageJson.version;
 
 export const checkUpdates = async (): Promise<{ available: boolean; info?: UpdateInfo; error?: string }> => {
   const updateUrl = import.meta.env.VITE_UPDATE_URL;
