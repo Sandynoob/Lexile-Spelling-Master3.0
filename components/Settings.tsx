@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { RefreshCw, CheckCircle2, AlertCircle, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { checkUpdates, UpdateInfo } from '../services/updateService';
+import packageJson from '../package.json';
 
 const Settings: React.FC = () => {
   const [checking, setChecking] = useState(false);
@@ -38,7 +39,7 @@ const Settings: React.FC = () => {
       </div>
       
       <h2 className="font-kids text-2xl text-indigo-900 mb-2">Lexile Master</h2>
-      <p className="text-slate-500 font-bold uppercase tracking-widest text-xs mb-8">Version 1.0.3</p>
+      <p className="text-slate-500 font-bold uppercase tracking-widest text-xs mb-8">Version {packageJson.version}</p>
 
       <div className="w-full space-y-4">
         <div className="bg-white p-5 rounded-3xl border border-indigo-50 shadow-sm">
