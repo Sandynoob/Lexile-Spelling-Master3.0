@@ -9,7 +9,8 @@ export interface UpdateInfo {
 const CURRENT_VERSION = packageJson.version;
 
 export const checkUpdates = async (): Promise<{ available: boolean; info?: UpdateInfo; error?: string }> => {
-  const updateUrl = import.meta.env.VITE_UPDATE_URL;
+  // Try environment variable first, then fallback to hardcoded URL
+  const updateUrl = import.meta.env.VITE_UPDATE_URL || 'https://raw.githubusercontent.com/Sandynoob/Lexile-Spelling-Master2.0/main/version.json';
 
   if (!updateUrl) {
     return { available: false, error: 'Update URL not configured.' };
