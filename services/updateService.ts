@@ -12,7 +12,7 @@ export const checkUpdates = async (): Promise<{ available: boolean; info?: Updat
   // Hardcoded fallback to ensure it works in GitHub builds without .env
   const REPO_PATH = 'Sandynoob/Lexile-Spelling-Master2.0';
   const JSDELIVR_URL = `https://cdn.jsdelivr.net/gh/${REPO_PATH}@main/version.json`;
-  const GITHUB_RAW_URL = `https://raw.githubusercontent.com/${REPO_PATH}/main/version.json`;
+  const GITHUB_RAW_URL = `https://raw.githubusercontent.com/Sandynoob/Lexile-Spelling-Master2.0/refs/heads/main/version.json`;
   
   // Try JSDelivr first, then Raw GitHub as fallback
   const urlsToTry = [
