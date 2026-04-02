@@ -103,10 +103,20 @@ const Settings: React.FC = () => {
               <motion.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-2 text-rose-600 text-xs font-bold bg-rose-50 p-3 rounded-xl"
+                className="bg-rose-50 p-4 rounded-2xl border border-rose-100"
               >
-                <AlertCircle className="w-4 h-4" />
-                <span>{errorMessage || 'Failed to check for updates.'}</span>
+                <div className="flex items-center gap-2 text-rose-600 text-xs font-bold mb-2">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>Update Check Failed</span>
+                </div>
+                <p className="text-rose-500 text-[10px] font-mono break-all leading-relaxed">
+                  {errorMessage || 'Unknown error occurred.'}
+                </p>
+                <div className="mt-2 pt-2 border-t border-rose-100">
+                  <p className="text-slate-400 text-[9px]">
+                    Tip: Ensure your phone can access GitHub or jsDelivr.
+                  </p>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
