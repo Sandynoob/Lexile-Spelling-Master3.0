@@ -1,5 +1,5 @@
 {
   "version": "1.0.4",
-  "url": "https://github.com/Sandynoob/Lexile-Spelling-Master2.0/releases/download/V1.0.4/app-debug.apk",
-  "releaseNotes": "修复了一些已知问题，提升了拼写检测的准确度。增加在线更新。"
+  "url": "https://github.com/Sandynoob/Lexile-Spelling-Master2.0/releases/latest/download/app-release.apk",
+  "releaseNotes": "1. 优化了手机端字母块的点击准确度\n2. 修复了在线更新检查的逻辑问题"
 }
