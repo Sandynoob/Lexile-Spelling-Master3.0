@@ -155,20 +155,20 @@ const SpellingGame: React.FC<SpellingGameProps> = ({ words, onFinish, onBack }) 
 
           {/* 2. Spelling Slots Area */}
           <div className="flex-none flex items-center justify-center w-full px-2">
-            <div className="flex flex-wrap justify-center gap-1 md:gap-2.5 max-w-full">
+            <div className="flex flex-wrap justify-center gap-1.5 md:gap-3 max-w-full">
               {selectedSegments.map((segment, i) => (
                 <div 
-                  key={`slot-${i}`}
-                  onClick={() => undoSegment(i)}
-                  className={`spelling-slot flex items-center justify-center font-black transition-all border-b-4 md:border-b-8 px-2 whitespace-nowrap overflow-hidden
-                    ${isWrong ? 'border-red-300 text-red-500 animate-shake' : 'border-slate-100 text-indigo-950'}
-                    ${segment ? 'bg-white rounded-t-xl shadow-md border-b-indigo-500 translate-y-[-2px]' : 'bg-slate-50/50 rounded-t-lg'}
-                  `}
-                  style={{
-                    minWidth: `clamp(3rem, ${80 / segmentCount}vw, ${segmentCount > 4 ? '5rem' : '8rem'})`,
-                    height: `clamp(3.5rem, 12vh, ${segmentCount > 4 ? '5rem' : '8rem'})`,
-                    fontSize: `clamp(1.2rem, ${40 / segmentCount}vw, 3rem)`
-                  }}
+                   key={`slot-${i}`}
+                   onClick={() => undoSegment(i)}
+                   className={`spelling-slot flex items-center justify-center font-black transition-all border-b-4 md:border-b-8 px-2 whitespace-nowrap overflow-hidden
+                     ${isWrong ? 'border-red-300 text-red-500 animate-shake' : 'border-slate-100 text-indigo-950'}
+                     ${segment ? 'bg-white rounded-t-xl shadow-md border-b-indigo-500 translate-y-[-2px]' : 'bg-slate-50/50 rounded-t-lg'}
+                   `}
+                   style={{
+                     minWidth: `clamp(3.5rem, ${90 / segmentCount}vw, ${segmentCount > 5 ? '4.5rem' : '7rem'})`,
+                     height: `clamp(4.5rem, 14vh, ${segmentCount > 5 ? '5.5rem' : '8rem'})`,
+                     fontSize: `clamp(1.5rem, ${50 / segmentCount}vw, 2.8rem)`
+                   }}
                 >
                   {segment || ''}
                 </div>
@@ -177,17 +177,17 @@ const SpellingGame: React.FC<SpellingGameProps> = ({ words, onFinish, onBack }) 
           </div>
 
           {/* 3. Candidate Segment Pool */}
-          <div className="flex-none flex flex-wrap justify-center gap-2 md:gap-4 max-w-full px-4">
+          <div className="flex-none flex flex-wrap justify-center gap-2.5 md:gap-5 max-w-full px-4">
             {scrambledSegments.map((segment, i) => (
               <button
                 key={`pool-${segment}-${i}`}
                 onClick={() => handleSegmentClick(segment, i)}
-                className="pool-button bg-white rounded-xl md:rounded-2xl shadow-sm border border-slate-100 text-indigo-800 px-3
-                           font-black hover:bg-indigo-50 hover:translate-y-[-2px] hover:shadow-md active:scale-90 transition-all"
+                className="pool-button bg-white rounded-xl md:rounded-2xl shadow-md border-2 border-slate-50 text-indigo-800 px-3
+                           font-black hover:bg-indigo-50 hover:translate-y-[-4px] hover:shadow-lg active:scale-90 transition-all"
                 style={{
-                  minWidth: `clamp(3rem, 12vw, 5rem)`,
-                  height: `clamp(3rem, 12vw, 5rem)`,
-                  fontSize: `clamp(1.1rem, 5vw, 2rem)`
+                  minWidth: `clamp(3.8rem, 16vw, 6rem)`,
+                  height: `clamp(3.8rem, 16vw, 6rem)`,
+                  fontSize: `clamp(1.4rem, 7vw, 2.4rem)`
                 }}
               >
                 {segment}
