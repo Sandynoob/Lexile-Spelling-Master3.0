@@ -1,10 +1,14 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+HK:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-kids: "Comic Sans MS", "Chalkboard SE", "Comic Neue", cursive;
+  --font-kids: "Noto Serif HK", serif;
+  --font-sans: "Noto Serif HK", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Noto Serif HK", serif;
 }
 
 body {
+  font-family: "Noto Serif HK", serif;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
