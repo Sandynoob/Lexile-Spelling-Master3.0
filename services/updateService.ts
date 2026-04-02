@@ -9,67 +9,52 @@ export interface UpdateInfo {
 const CURRENT_VERSION = packageJson.version;
 
 export const checkUpdates = async (): Promise<{ available: boolean; info?: UpdateInfo; error?: string }> => {
-  // Use jsDelivr CDN with cache busting for better reliability on mobile
-  const JSDELIVR_URL = 'https://cdn.jsdelivr.net/gh/Sandynoob/Lexile-Spelling-Master2.0@main/version.json';
+  // Hardcoded fallback to ensure it works in GitHub builds without .env
+  const REPO_PATH = 'Sandynoob/Lexile-Spelling-Master2.0';
+  const JSDELIVR_URL = `https://cdn.jsdelivr.net/gh/${REPO_PATH}@main/version.json`;
+  const GITHUB_RAW_URL = `https://raw.githubusercontent.com/${REPO_PATH}/main/version.json`;
   
-  // Add cache busting query param
-  const baseUrl = import.meta.env.VITE_UPDATE_URL || JSDELIVR_URL;
-  const updateUrl = `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}t=${Date.now()}`;
+  // Try JSDelivr first, then Raw GitHub as fallback
+  const urlsToTry = [
+    import.meta.env.VITE_UPDATE_URL,
+    JSDELIVR_URL,
+    GITHUB_RAW_URL
+  ].filter(Boolean) as string[];
 
-  console.log('Checking for updates at:', updateUrl);
+  console.log('Update URLs to try:', urlsToTry);
 
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // Increased to 15s
+  let lastError = '';
 
-    const response = await fetch(updateUrl, { 
-      signal: controller.signal,
-      cache: 'no-store', // Disable browser cache
-      headers: {
-        'Accept': 'application/json'
-      }
-    });
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      throw new Error(`Server returned ${response.status} (${response.statusText})`);
-    }
-
-    const text = await response.text();
-    let data: UpdateInfo;
-    
+  for (const url of urlsToTry) {
     try {
-      data = JSON.parse(text);
-    } catch (parseErr) {
-      console.error('JSON Parse Error. Content received:', text.substring(0, 100));
-      throw new Error('Received invalid data format from server');
-    }
-    
-    if (!data || !data.version) {
-      throw new Error('Version information is missing in the server response');
-    }
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
 
-    // Log versions for debugging
-    console.log(`Server Version: ${data.version}, Local Version: ${CURRENT_VERSION}`);
+      const response = await fetch(`${url}${url.includes('?') ? '&' : '?'}t=${Date.now()}`, { 
+        signal: controller.signal,
+        cache: 'no-store'
+      });
+      clearTimeout(timeoutId);
 
-    const isAvailable = compareVersions(data.version, CURRENT_VERSION) > 0;
-    return { available: isAvailable, info: data };
-  } catch (err) {
-    console.error('Update check failed:', err);
-    let errorMessage = 'Network error';
-    
-    if (err instanceof Error) {
-      if (err.name === 'AbortError') {
-        errorMessage = 'Connection timeout. Please check your internet.';
-      } else if (err.message.includes('Failed to fetch')) {
-        errorMessage = 'Network blocked or CORS issue. Try a different network.';
-      } else {
-        errorMessage = err.message;
+      if (response.ok) {
+        const data: UpdateInfo = await response.json();
+        if (data && data.version) {
+          const isAvailable = compareVersions(data.version, CURRENT_VERSION) > 0;
+          return { available: isAvailable, info: data };
+        }
       }
+      lastError = `Server returned ${response.status}`;
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : 'Connection failed';
+      console.warn(`Failed to fetch from ${url}:`, lastError);
+      // Continue to next URL
     }
-    
-    return { available: false, error: errorMessage };
   }
+  
+  return { 
+    available: false, 
+    error: `Update check failed on all mirrors. Last error: ${lastError}. Please check if ${REPO_PATH}/version.json exists on GitHub.` 
+  };
 };
 
 /**
