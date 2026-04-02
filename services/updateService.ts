@@ -12,9 +12,7 @@ export const checkUpdates = async (): Promise<{ available: boolean; info?: Updat
   // Try environment variable first, then fallback to hardcoded URL
   const updateUrl = import.meta.env.VITE_UPDATE_URL || 'https://raw.githubusercontent.com/Sandynoob/Lexile-Spelling-Master2.0/main/version.json';
 
-  if (!updateUrl) {
-    return { available: false, error: 'Update URL not configured.' };
-  }
+  console.log('Checking for updates at:', updateUrl);
 
   try {
     const response = await fetch(updateUrl);
