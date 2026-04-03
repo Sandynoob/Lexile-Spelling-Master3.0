@@ -33,9 +33,6 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Generate App Icon
-        run: npx tsx scripts/generate-icon.js
-
       - name: Build Web Project (Bundle TSX to JS)
         run: npm run build
 
