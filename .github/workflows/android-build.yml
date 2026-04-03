@@ -89,12 +89,17 @@ jobs:
             echo "Warning: android/app/build.gradle not found, skipping version sync."
           fi
 
-      - name: Build APK
+      - name: Force Fix Gradle and Build
         run: |
           cd android
+          # 1. 物理修改 gradle-wrapper.properties 檔案，確保強制使用 8.10.2
+          sed -i 's/gradle-8.2.1-all.zip/gradle-8.10.2-all.zip/g' gradle/wrapper/gradle-wrapper.properties
+          
+          # 2. 物理修改 build.gradle，加入強制降級 bcprov 的代碼
+          echo "configurations.all { resolutionStrategy { force 'org.bouncycastle:bcprov-jdk18on:1.78.1' } }" >> app/build.gradle
+          
+          # 3. 執行編譯
           chmod +x gradlew
-          # 物理升級 Gradle 8.10.2 解決 bcprov-jdk18on 1.79 衝突
-          ./gradlew wrapper --gradle-version 8.10.2
           ./gradlew assembleDebug --no-daemon
 
       - name: Sign APK
