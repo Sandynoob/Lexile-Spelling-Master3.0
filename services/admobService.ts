@@ -8,20 +8,24 @@ export const AdMobService = {
 
   async initialize() {
     try {
+      console.log('AdMobService: Initializing...');
       if (Capacitor.isNativePlatform()) {
         await AdMob.initialize({
           testingDevices: [], // 生产环境请留空
           initializeForTesting: true,
         });
-        console.log('AdMob initialized');
+        console.log('AdMobService: Initialized successfully');
+      } else {
+        console.log('AdMobService: Not a native platform, skipping initialization');
       }
     } catch (error) {
-      console.error('AdMob initialization failed', error);
+      console.error('AdMobService: Initialization failed', error);
     }
   },
 
   async showBanner() {
     try {
+      console.log('AdMobService: Attempting to show banner...');
       if (Capacitor.isNativePlatform()) {
         const options: BannerAdOptions = {
           adId: this.bannerAdId,
@@ -31,9 +35,12 @@ export const AdMobService = {
           isTesting: true,
         };
         await AdMob.showBanner(options);
+        console.log('AdMobService: Banner shown successfully');
+      } else {
+        console.log('AdMobService: Not a native platform, skipping banner');
       }
     } catch (error) {
-      console.error('Show banner failed', error);
+      console.error('AdMobService: Show banner failed', error);
     }
   },
 
