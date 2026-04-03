@@ -1,0 +1,136 @@
+
+name: Build Android APK
+
+on:
+  # 手动触发
+  workflow_dispatch:
+  # 当发布或更新 Release 时触发
+  release:
+    types: [published, edited]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Web Project (Bundle TSX to JS)
+        run: npm run build
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'zulu'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Create Android Project
+        run: |
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
+          # 强制同步并更新 Android 项目
+          npx cap sync android
+          npx cap update android
+          
+          # 注入 AdMob Application ID 到 AndroidManifest.xml 以防止闪退
+          MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
+          if [ -f "$MANIFEST_PATH" ]; then
+            if ! grep -q "com.google.android.gms.ads.APPLICATION_ID" "$MANIFEST_PATH"; then
+              echo "Injecting AdMob Application ID into AndroidManifest.xml..."
+              sed -i '/<\/application>/i \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-9053893199466734~3107879879"/>' "$MANIFEST_PATH"
+            fi
+          fi
+
+      - name: Sync App Icon (logo512.png to Android)
+        run: |
+          # 自动将 public/logo512.png 覆盖到 Android 的所有图标目录
+          ICON_SRC="public/logo512.png"
+          if [ -f "$ICON_SRC" ]; then
+            echo "Syncing $ICON_SRC to Android resources..."
+            # 覆盖所有的 mipmap 文件夹中的 ic_launcher.png 和 ic_launcher_round.png
+            find android/app/src/main/res -name "ic_launcher.png" -exec cp "$ICON_SRC" {} \;
+            find android/app/src/main/res -name "ic_launcher_round.png" -exec cp "$ICON_SRC" {} \;
+            # 同时也覆盖 ic_launcher_foreground.png (适配现代 Android 的自适应图标)
+            find android/app/src/main/res -name "ic_launcher_foreground.png" -exec cp "$ICON_SRC" {} \;
+            echo "Icon sync complete."
+          else
+            echo "Warning: $ICON_SRC not found, skipping icon sync."
+          fi
+
+      - name: Get Version
+        id: get_version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Sync Version from package.json
+        run: |
+          VERSION_NAME=${{ steps.get_version.outputs.VERSION }}
+          VERSION_CODE=$(date +%s)
+          echo "Build version: $VERSION_NAME"
+          echo "Build code: $VERSION_CODE"
+          # 更加鲁棒的替换逻辑
+          if [ -f "android/app/build.gradle" ]; then
+            sed -i "s/versionCode [0-9]*/versionCode $VERSION_CODE/g" android/app/build.gradle
+            sed -i "s/versionName \".*\"/versionName \"$VERSION_NAME\"/g" android/app/build.gradle
+            echo "Synced version $VERSION_NAME ($VERSION_CODE) to Android"
+            echo "build.gradle version lines:"
+            grep -E "versionCode|versionName" android/app/build.gradle || true
+          else
+            echo "Warning: android/app/build.gradle not found, skipping version sync."
+          fi
+
+      - name: Build APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Sign APK
+        if: env.HAS_SIGNING_CONFIG == 'true'
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/release-key.jks
+          APKSIGNER=$(find $ANDROID_SDK_ROOT/build-tools -name apksigner | sort -r | head -n 1)
+          $APKSIGNER sign --ks android/app/release-key.jks \
+            --ks-key-alias ${{ secrets.ANDROID_KEY_ALIAS }} \
+            --ks-pass pass:${{ secrets.ANDROID_KEYSTORE_PASSWORD }} \
+            --key-pass pass:${{ secrets.ANDROID_KEY_PASSWORD }} \
+            --out android/app/build/outputs/apk/debug/app-signed.apk \
+            android/app/build/outputs/apk/debug/app-debug.apk
+          mv android/app/build/outputs/apk/debug/app-signed.apk android/app/build/outputs/apk/debug/app-debug.apk
+        env:
+          HAS_SIGNING_CONFIG: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug.apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Update Release Assets
+        if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.get_version.outputs.VERSION || '1.0.7' }}
+          files: android/app/build/outputs/apk/debug/app-debug.apk
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
