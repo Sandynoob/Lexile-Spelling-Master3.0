@@ -65,6 +65,24 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug
 
+      - name: Sign APK
+        if: env.HAS_SIGNING_CONFIG == 'true'
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/release-key.jks
+          # 使用 apksigner 进行签名 (Android SDK 自带)
+          # 寻找 apksigner 路径
+          APKSIGNER=$(find $ANDROID_SDK_ROOT/build-tools -name apksigner | sort -r | head -n 1)
+          $APKSIGNER sign --ks android/app/release-key.jks \
+            --ks-key-alias ${{ secrets.ANDROID_KEY_ALIAS }} \
+            --ks-pass pass:${{ secrets.ANDROID_KEYSTORE_PASSWORD }} \
+            --key-pass pass:${{ secrets.ANDROID_KEY_PASSWORD }} \
+            --out android/app/build/outputs/apk/debug/app-signed.apk \
+            android/app/build/outputs/apk/debug/app-debug.apk
+          # 替换原始文件
+          mv android/app/build/outputs/apk/debug/app-signed.apk android/app/build/outputs/apk/debug/app-debug.apk
+        env:
+          HAS_SIGNING_CONFIG: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
