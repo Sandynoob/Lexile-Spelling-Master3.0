@@ -165,9 +165,9 @@ const SpellingGame: React.FC<SpellingGameProps> = ({ words, onFinish, onBack }) 
                      ${segment ? 'bg-white rounded-t-xl shadow-md border-b-indigo-500 translate-y-[-2px]' : 'bg-slate-50/50 rounded-t-lg'}
                    `}
                    style={{
-                     minWidth: `clamp(2.5rem, ${70 / segmentCount}vw, ${segmentCount > 5 ? '3.5rem' : '5rem'})`,
-                     height: `clamp(3.5rem, 10vh, ${segmentCount > 5 ? '4.5rem' : '6.5rem'})`,
-                     fontSize: `clamp(1.2rem, ${35 / segmentCount}vw, 2.2rem)`
+                     minWidth: `clamp(2.8rem, ${75 / segmentCount}vw, ${segmentCount > 5 ? '3.8rem' : '5.5rem'})`,
+                     height: `clamp(3.8rem, 12vh, ${segmentCount > 5 ? '4.8rem' : '6.8rem'})`,
+                     fontSize: `clamp(1.3rem, ${38 / segmentCount}vw, 2.4rem)`
                    }}
                 >
                   {segment || ''}
@@ -177,17 +177,17 @@ const SpellingGame: React.FC<SpellingGameProps> = ({ words, onFinish, onBack }) 
           </div>
 
           {/* 3. Candidate Segment Pool */}
-          <div className="flex-none flex flex-wrap justify-center gap-3 md:gap-6 max-w-full px-4">
+          <div className="flex-none flex flex-wrap justify-center gap-2.5 md:gap-5 max-w-full px-4">
             {scrambledSegments.map((segment, i) => (
               <button
                 key={`pool-${segment}-${i}`}
                 onClick={() => handleSegmentClick(segment, i)}
-                className="pool-button bg-white rounded-2xl md:rounded-3xl shadow-lg border-2 border-slate-50 text-indigo-800 px-4
-                           font-black hover:bg-indigo-50 hover:translate-y-[-4px] hover:shadow-xl active:scale-90 transition-all"
+                className="pool-button bg-white rounded-xl md:rounded-2xl shadow-md border-2 border-slate-50 text-indigo-800 px-3
+                           font-black hover:bg-indigo-50 hover:translate-y-[-4px] hover:shadow-lg active:scale-90 transition-all"
                 style={{
-                  minWidth: `clamp(5.5rem, 25vw, 8.5rem)`,
-                  height: `clamp(5.5rem, 25vw, 8.5rem)`,
-                  fontSize: `clamp(2.2rem, 12vw, 3.8rem)`
+                  minWidth: `clamp(4rem, 18vw, 6rem)`,
+                  height: `clamp(4rem, 18vw, 6rem)`,
+                  fontSize: `clamp(1.6rem, 8vw, 2.8rem)`
                 }}
               >
                 {segment}
