@@ -2,13 +2,13 @@ import packageJson from '../package.json';
 
 export interface UpdateInfo {
   version: string;
-  url: string;
+  downloadUrl: string;
   releaseNotes?: string;
 }
 
 const CURRENT_VERSION = packageJson.version;
 
-export const checkUpdates = async (): Promise<{ available: boolean; info?: UpdateInfo; error?: string }> => {
+export const checkUpdates = async (): Promise<{ available: boolean; info?: { version: string; url: string; releaseNotes?: string }; error?: string }> => {
   // Hardcoded URLs to ensure it works without any .env or GitHub Secrets
   const REPO_PATH = 'Sandynoob/Lexile-Spelling-Master2.0';
   const JSDELIVR_URL = `https://cdn.jsdelivr.net/gh/${REPO_PATH}@main/version.json`;
@@ -39,7 +39,14 @@ export const checkUpdates = async (): Promise<{ available: boolean; info?: Updat
         const data: UpdateInfo = await response.json();
         if (data && data.version) {
           const isAvailable = compareVersions(data.version, CURRENT_VERSION) > 0;
-          return { available: isAvailable, info: data };
+          return { 
+            available: isAvailable, 
+            info: {
+              version: data.version,
+              url: data.downloadUrl, // Map downloadUrl to url
+              releaseNotes: data.releaseNotes
+            } 
+          };
         }
       }
       lastError = `Server returned ${response.status}`;
