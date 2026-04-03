@@ -19,7 +19,8 @@ async function generateIcon() {
         <text x="256" y="260" font-family="cursive, 'Brush Script MT', 'Apple Chancery'" font-size="160" fill="white" text-anchor="middle">L</text>
         
         <!-- Text Below -->
-        <text x="256" y="420" font-family="cursive, 'Brush Script MT', 'Apple Chancery'" font-size="54" fill="${purple}" text-anchor="middle">Lexile Master</text>
+        <text x="256" y="400" font-family="cursive, 'Brush Script MT', 'Apple Chancery'" font-size="48" fill="${purple}" text-anchor="middle">Lexile</text>
+        <text x="256" y="460" font-family="cursive, 'Brush Script MT', 'Apple Chancery'" font-size="48" fill="${purple}" text-anchor="middle">Spelling Master</text>
     </svg>
     `;
 
