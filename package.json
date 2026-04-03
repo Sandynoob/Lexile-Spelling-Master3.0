@@ -1,6 +1,6 @@
 {
   "name": "lexile-spelling-master",
-  "version": "1.0.7",
+  "version": "1.0.6",
   "description": "Lexile based spelling assessment app",
   "main": "index.js",
   "scripts": {
