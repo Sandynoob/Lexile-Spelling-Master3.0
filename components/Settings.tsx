@@ -86,19 +86,17 @@ const Settings: React.FC = () => {
                   <span>New Version Available: {updateInfo.version}</span>
                 </div>
                 {updateInfo.releaseNotes && (
-                  <p className="text-slate-600 text-xs mb-3 leading-relaxed">
+                  <p className="text-slate-600 text-xs mb-3 leading-relaxed whitespace-pre-line">
                     {updateInfo.releaseNotes}
                   </p>
                 )}
-                <a 
-                  href={updateInfo.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button 
+                  onClick={() => window.open(updateInfo.url, '_system')}
                   className="flex items-center justify-center gap-2 w-full bg-indigo-600 text-white py-2 rounded-xl text-xs font-bold hover:bg-indigo-700 transition-colors"
                 >
                   <ExternalLink className="w-3 h-3" />
                   Download Now
-                </a>
+                </button>
               </motion.div>
             )}
 
