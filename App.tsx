@@ -8,6 +8,7 @@ import Results from './components/Results';
 import History from './components/History';
 import Settings from './components/Settings';
 import { getWordSegments } from './services/phonicsService';
+import { AdMobService } from './services/admobService';
 
 const HISTORY_KEY = 'lexile_test_history_v2';
 const MAX_HISTORY_SESSIONS = 10;
@@ -35,6 +36,11 @@ const App: React.FC = () => {
         console.error("Failed to parse history", e);
       }
     }
+    
+    // Initialize AdMob
+    AdMobService.initialize().then(() => {
+      AdMobService.showBanner();
+    });
   }, []);
 
   const saveToHistory = (record: TestRecord) => {
@@ -136,6 +142,9 @@ const App: React.FC = () => {
     saveToHistory(record);
     setScoreData(data);
     setGameState(GameState.FINISHED);
+    
+    // Show interstitial ad after completing a test
+    AdMobService.showInterstitial();
   };
 
   const resetGame = () => {
