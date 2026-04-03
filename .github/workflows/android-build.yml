@@ -42,26 +42,13 @@ jobs:
 
       - name: Create Android Project
         run: |
+          # 如果目錄不存在則創建
           if [ ! -d "android" ]; then
             npx cap add android
           fi
-          # 強制同步並更新 Android 專案
+          # 同步插件與 Web 代碼
           npx cap sync android
           npx cap update android
-
-      - name: Sync App Icon (logo512.png to Android)
-        run: |
-          # 自動將 public/logo512.png 覆蓋到 Android 的所有圖示目錄
-          ICON_SRC="public/logo512.png"
-          if [ -f "$ICON_SRC" ]; then
-            echo "Syncing $ICON_SRC to Android resources..."
-            find android/app/src/main/res -name "ic_launcher.png" -exec cp "$ICON_SRC" {} \;
-            find android/app/src/main/res -name "ic_launcher_round.png" -exec cp "$ICON_SRC" {} \;
-            find android/app/src/main/res -name "ic_launcher_foreground.png" -exec cp "$ICON_SRC" {} \;
-            echo "Icon sync complete."
-          else
-            echo "Warning: $ICON_SRC not found, skipping icon sync."
-          fi
 
       - name: Get Version
         id: get_version
@@ -69,27 +56,24 @@ jobs:
           VERSION=$(node -p "require('./package.json').version")
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Sync Version from package.json
-        run: |
-          VERSION_NAME=${{ steps.get_version.outputs.VERSION }}
-          VERSION_CODE=$(date +%s)
-          echo "Build version: $VERSION_NAME"
-          echo "Build code: $VERSION_CODE"
-          if [ -f "android/app/build.gradle" ]; then
-            sed -i "s/versionCode [0-9]*/versionCode $VERSION_CODE/g" android/app/build.gradle
-            sed -i "s/versionName \".*\"/versionName \"$VERSION_NAME\"/g" android/app/build.gradle
-            echo "Synced version $VERSION_NAME ($VERSION_CODE) to Android"
-          fi
-
-      - name: Force Fix Gradle and Build
+      - name: Force Fix Gradle, AdMob and Build
         run: |
           cd android
-          # 1. 物理修改 gradle-wrapper.properties，確保強制使用 8.10.2 (解決 bcprov 衝突)
+          # 1. 物理修改 wrapper，確保強制使用 8.10.2 (解決 bcprov 1.79 導致的編譯失敗)
           sed -i 's/gradle-8.2.1-all.zip/gradle-8.10.2-all.zip/g' gradle/wrapper/gradle-wrapper.properties
           
-          # 2. 物理修改 root build.gradle，加入強制降級 bcprov 的代碼
-          cat <<EOF >> build.gradle
+          # 2. 【核心修復】自動注入 AdMob APP ID 到 AndroidManifest.xml
+          # 這是你的正式 APP ID: ca-app-pub-9053893199466734~3107879879
+          MANIFEST="app/src/main/AndroidManifest.xml"
+          ADMOB_APP_ID="ca-app-pub-9053893199466734~3107879879"
+          if [ -f "$MANIFEST" ]; then
+            # 在 </application> 標籤前插入 AdMob 所需的 meta-data
+            sed -i "/<\/application>/i \        <meta-data android:name=\"com.google.android.gms.ads.APPLICATION_ID\" android:value=\"$ADMOB_APP_ID\"\/>" $MANIFEST
+            echo "AdMob ID injected into $MANIFEST"
+          fi
           
+          # 3. 物理修改 root build.gradle，加入強制降級 bcprov 的代碼
+          cat <<EOF >> build.gradle
           allprojects {
               configurations.all {
                   resolutionStrategy {
@@ -99,20 +83,17 @@ jobs:
           }
           EOF
           
-          # 3. 更新 variables.gradle (解決 minSdkVersion 22 導致的 AdMob 衝突)
+          # 4. 更新 variables.gradle (將 minSdkVersion 提升到 23 以符合 AdMob 要求)
           if [ -f "variables.gradle" ]; then
-            # 強制將 minSdk 提升到 23，這是最新 AdMob SDK 的最低要求
             sed -i "s/minSdkVersion = [0-9]*/minSdkVersion = 23/g" variables.gradle
             sed -i "s/compileSdkVersion = [0-9]*/compileSdkVersion = 35/g" variables.gradle
             sed -i "s/targetSdkVersion = [0-9]*/targetSdkVersion = 35/g" variables.gradle
           fi
 
-          # 4. 消除 SDK 35 的警告 (可選)
-          if [ -f "gradle.properties" ]; then
-            echo "android.suppressUnsupportedCompileSdk=35" >> gradle.properties
-          fi
+          # 5. 增加編譯記憶體，防止日誌被截斷
+          echo "org.gradle.jvmargs=-Xmx3072m" >> gradle.properties
           
-          # 5. 執行編譯
+          # 6. 執行編譯
           chmod +x gradlew
           ./gradlew clean
           ./gradlew assembleDebug --no-daemon
