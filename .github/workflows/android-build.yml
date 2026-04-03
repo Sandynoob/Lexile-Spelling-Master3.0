@@ -1,9 +1,10 @@
+
 name: Build Android APK
 
 on:
-  # 手動觸發
+  # 手动触发
   workflow_dispatch:
-  # 當發佈或更新 Release 時觸發
+  # 当发布或更新 Release 时触发
   release:
     types: [published, edited]
 
@@ -42,13 +43,28 @@ jobs:
 
       - name: Create Android Project
         run: |
-          # 如果目錄不存在則創建
           if [ ! -d "android" ]; then
             npx cap add android
           fi
-          # 同步插件與 Web 代碼
+          # 强制同步并更新 Android 项目
           npx cap sync android
           npx cap update android
+
+      - name: Sync App Icon (logo512.png to Android)
+        run: |
+          # 自动将 public/logo512.png 覆盖到 Android 的所有图标目录
+          ICON_SRC="public/logo512.png"
+          if [ -f "$ICON_SRC" ]; then
+            echo "Syncing $ICON_SRC to Android resources..."
+            # 覆盖所有的 mipmap 文件夹中的 ic_launcher.png 和 ic_launcher_round.png
+            find android/app/src/main/res -name "ic_launcher.png" -exec cp "$ICON_SRC" {} \;
+            find android/app/src/main/res -name "ic_launcher_round.png" -exec cp "$ICON_SRC" {} \;
+            # 同时也覆盖 ic_launcher_foreground.png (适配现代 Android 的自适应图标)
+            find android/app/src/main/res -name "ic_launcher_foreground.png" -exec cp "$ICON_SRC" {} \;
+            echo "Icon sync complete."
+          else
+            echo "Warning: $ICON_SRC not found, skipping icon sync."
+          fi
 
       - name: Get Version
         id: get_version
@@ -56,47 +72,61 @@ jobs:
           VERSION=$(node -p "require('./package.json').version")
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Force Fix Gradle, AdMob and Build
+      - name: Sync Version from package.json
+        run: |
+          VERSION_NAME=${{ steps.get_version.outputs.VERSION }}
+          VERSION_CODE=$(date +%s)
+          echo "Build version: $VERSION_NAME"
+          echo "Build code: $VERSION_CODE"
+          # 更加鲁棒的替换逻辑
+          if [ -f "android/app/build.gradle" ]; then
+            sed -i "s/versionCode [0-9]*/versionCode $VERSION_CODE/g" android/app/build.gradle
+            sed -i "s/versionName \".*\"/versionName \"$VERSION_NAME\"/g" android/app/build.gradle
+            echo "Synced version $VERSION_NAME ($VERSION_CODE) to Android"
+            echo "build.gradle version lines:"
+            grep -E "versionCode|versionName" android/app/build.gradle || true
+          else
+            echo "Warning: android/app/build.gradle not found, skipping version sync."
+          fi
+
+      - name: Force Fix Gradle and Build
         run: |
           cd android
-          # 1. 物理修改 wrapper，確保強制使用 8.10.2 (解決 bcprov 1.79 導致的編譯失敗)
-          sed -i 's/gradle-8.2.1-all.zip/gradle-8.10.2-all.zip/g' gradle/wrapper/gradle-wrapper.properties
           
-          # 2. 【核心修復】自動注入 AdMob APP ID 到 AndroidManifest.xml
-          # 這是你的正式 APP ID: ca-app-pub-9053893199466734~3107879879
-          MANIFEST="app/src/main/AndroidManifest.xml"
-          ADMOB_APP_ID="ca-app-pub-9053893199466734~3107879879"
-          if [ -f "$MANIFEST" ]; then
-            # 在 </application> 標籤前插入 AdMob 所需的 meta-data
-            sed -i "/<\/application>/i \        <meta-data android:name=\"com.google.android.gms.ads.APPLICATION_ID\" android:value=\"$ADMOB_APP_ID\"\/>" $MANIFEST
-            echo "AdMob ID injected into $MANIFEST"
-          fi
-          
-          # 3. 物理修改 root build.gradle，加入強制降級 bcprov 的代碼
+          # 1. 解决 bcprov-jdk18on 1.79 导致的 Gradle 8.2.1 崩溃问题
+          # 必须在 buildscript 的 classpath 中强制降级，因为这是构建脚本依赖
           cat <<EOF >> build.gradle
+          
+          buildscript {
+              configurations.classpath {
+                  resolutionStrategy.force 'org.bouncycastle:bcprov-jdk18on:1.78.1'
+              }
+          }
           allprojects {
               configurations.all {
-                  resolutionStrategy {
-                      force 'org.bouncycastle:bcprov-jdk18on:1.78.1'
-                  }
+                  resolutionStrategy.force 'org.bouncycastle:bcprov-jdk18on:1.78.1'
               }
           }
           EOF
           
-          # 4. 更新 variables.gradle (將 minSdkVersion 提升到 23 以符合 AdMob 要求)
+          # 2. 更新 variables.gradle (解決 minSdkVersion 22 導致的 AdMob 衝突)
           if [ -f "variables.gradle" ]; then
+            # 強制將 minSdk 提升到 23，這是最新 AdMob SDK 的最低要求
             sed -i "s/minSdkVersion = [0-9]*/minSdkVersion = 23/g" variables.gradle
             sed -i "s/compileSdkVersion = [0-9]*/compileSdkVersion = 35/g" variables.gradle
             sed -i "s/targetSdkVersion = [0-9]*/targetSdkVersion = 35/g" variables.gradle
           fi
 
-          # 5. 增加編譯記憶體，防止日誌被截斷
-          echo "org.gradle.jvmargs=-Xmx3072m" >> gradle.properties
+          # 3. 消除 SDK 35 的警告，并增加 Gradle 内存防止 OOM 崩溃
+          if [ -f "gradle.properties" ]; then
+            echo "android.suppressUnsupportedCompileSdk=35" >> gradle.properties
+            echo "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" >> gradle.properties
+          fi
           
-          # 6. 執行編譯
+          # 4. 執行編譯 (使用 Capacitor 默认的 Gradle 8.2.1，避免与 AGP 不兼容)
           chmod +x gradlew
           ./gradlew clean
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Sign APK
         if: env.HAS_SIGNING_CONFIG == 'true'
