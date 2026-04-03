@@ -46,7 +46,7 @@ const Settings: React.FC = () => {
           <div className="flex items-center justify-between mb-4">
             <div className="flex flex-col">
               <h3 className="font-kids text-indigo-900">Software Update</h3>
-              <span className="text-[8px] text-slate-400 font-mono">Build: V1.0.4-DEBUG-0402</span>
+              <span className="text-[8px] text-slate-400 font-mono">Build: V1.0.6-DEBUG-0403</span>
             </div>
             <button 
               onClick={handleCheckUpdates}
