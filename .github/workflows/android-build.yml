@@ -1,3 +1,4 @@
+
 name: Build Android APK
 
 on:
@@ -91,17 +92,28 @@ jobs:
       - name: Force Fix Gradle and Build
         run: |
           cd android
-          # 1. 更新 gradle-wrapper.properties，确保使用支持 SDK 35 的版本
+          # 1. 物理修改 gradle-wrapper.properties 檔案，確保強制使用 8.10.2
           sed -i 's/gradle-8.2.1-all.zip/gradle-8.10.2-all.zip/g' gradle/wrapper/gradle-wrapper.properties
           
-          # 2. 更新 build.gradle，加入强制降级 bcprov 的代码
-          echo "configurations.all { resolutionStrategy { force 'org.bouncycastle:bcprov-jdk18on:1.78.1' } }" >> app/build.gradle
+          # 2. 物理修改 root build.gradle，加入強制降級 bcprov 的代碼 (必须在 root，才能覆盖所有插件)
+          cat <<EOF >> build.gradle
           
-          # 3. 更新 compileSdkVersion 和 targetSdkVersion
-          sed -i 's/compileSdkVersion [0-9]*/compileSdkVersion 35/g' app/build.gradle
-          sed -i 's/targetSdkVersion [0-9]*/targetSdkVersion 35/g' app/build.gradle
+          allprojects {
+              configurations.all {
+                  resolutionStrategy {
+                      force 'org.bouncycastle:bcprov-jdk18on:1.78.1'
+                  }
+              }
+          }
+          EOF
           
-          # 4. 执行构建
+          # 3. 更新 variables.gradle 中的 SDK 版本 (Capacitor 的正确修改位置，千万不要改 app/build.gradle)
+          if [ -f "variables.gradle" ]; then
+            sed -i "s/compileSdkVersion = [0-9]*/compileSdkVersion = 35/g" variables.gradle
+            sed -i "s/targetSdkVersion = [0-9]*/targetSdkVersion = 35/g" variables.gradle
+          fi
+          
+          # 4. 執行編譯
           chmod +x gradlew
           ./gradlew clean
           ./gradlew assembleDebug --no-daemon
@@ -127,4 +139,12 @@ jobs:
           name: app-debug.apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
 
-     
+      - name: Update Release Assets
+        if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.get_version.outputs.VERSION || '1.0.7' }}
+          files: android/app/build/outputs/apk/debug/app-debug.apk
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
