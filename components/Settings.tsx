@@ -39,7 +39,10 @@ const Settings: React.FC = () => {
       </div>
       
       <h2 className="font-kids text-2xl text-indigo-900 mb-2">Lexile Master</h2>
-      <p className="text-slate-500 font-bold uppercase tracking-widest text-xs mb-8">Version {packageJson.version}</p>
+      <div className="flex flex-col items-center mb-8">
+        <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Current Version</p>
+        <p className="text-indigo-600 font-kids text-lg">V{packageJson.version}</p>
+      </div>
 
       <div className="w-full space-y-4">
         <div className="bg-white p-5 rounded-3xl border border-indigo-50 shadow-sm">
