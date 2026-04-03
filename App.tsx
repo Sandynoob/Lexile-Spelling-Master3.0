@@ -1,5 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { AdMob, BannerAdOptions, BannerAdSize, BannerAdPosition, AdOptions } from '@capacitor-community/admob';
 import { GameState, LexileRange, Word, ScoreData, TestRecord, WordResult } from './types';
 import { LEXILE_WORDS } from './constants';
 import LexileSelector from './components/LexileSelector';
@@ -35,6 +37,40 @@ const App: React.FC = () => {
         console.error("Failed to parse history", e);
       }
     }
+
+    // Initialize AdMob
+    const initAdMob = async () => {
+      if (Capacitor.isNativePlatform()) {
+        try {
+          await AdMob.initialize();
+          const options: BannerAdOptions = {
+            adId: 'ca-app-pub-9053893199466734/4831734476',
+            adSize: BannerAdSize.BANNER,
+            position: BannerAdPosition.BOTTOM_CENTER,
+            margin: 0,
+            isTesting: false
+          };
+          await AdMob.showBanner(options);
+
+          // Prepare Interstitial Ad
+          const interstitialOptions: AdOptions = {
+            adId: 'ca-app-pub-9053893199466734/4448591090',
+            isTesting: false
+          };
+          await AdMob.prepareInterstitial(interstitialOptions);
+        } catch (e) {
+          console.error("AdMob initialization failed", e);
+        }
+      }
+    };
+    initAdMob();
+
+    return () => {
+      if (Capacitor.isNativePlatform()) {
+        AdMob.hideBanner().catch(console.error);
+        AdMob.removeBanner().catch(console.error);
+      }
+    };
   }, []);
 
   const saveToHistory = (record: TestRecord) => {
@@ -123,7 +159,7 @@ const App: React.FC = () => {
     }
   };
 
-  const handleFinish = (data: ScoreData, results: WordResult[]) => {
+  const handleFinish = async (data: ScoreData, results: WordResult[]) => {
     const record: TestRecord = {
       id: Date.now().toString(),
       date: new Date().toISOString(),
@@ -136,6 +172,21 @@ const App: React.FC = () => {
     saveToHistory(record);
     setScoreData(data);
     setGameState(GameState.FINISHED);
+
+    // Show interstitial ad and prepare the next one
+    if (Capacitor.isNativePlatform()) {
+      try {
+        await AdMob.showInterstitial();
+        // Prepare the next interstitial ad for the next time
+        const interstitialOptions: AdOptions = {
+          adId: 'ca-app-pub-9053893199466734/4448591090',
+          isTesting: false
+        };
+        await AdMob.prepareInterstitial(interstitialOptions);
+      } catch (e) {
+        console.error("Failed to show interstitial", e);
+      }
+    }
   };
 
   const resetGame = () => {
