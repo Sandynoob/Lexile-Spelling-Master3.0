@@ -49,6 +49,19 @@ jobs:
           # 强制同步并更新 Android 项目
           npx cap sync android
           npx cap update android
+          
+          # 强制降级加密库版本 (bcprov-jdk18on) 解决 Gradle 8.2.1 兼容性 Bug
+          echo "Forcing bcprov-jdk18on version to 1.78.1..."
+          cat <<EOF >> android/build.gradle
+          
+          allprojects {
+              configurations.all {
+                  resolutionStrategy {
+                      force 'org.bouncycastle:bcprov-jdk18on:1.78.1'
+                  }
+              }
+          }
+          EOF
 
       - name: Sync App Icon (logo512.png to Android)
         run: |
@@ -92,12 +105,6 @@ jobs:
       - name: Build APK
         run: |
           cd android
-          # 强制在打包前修改 Gradle 版本，防止被 cap update 覆盖重置
-          sed -i 's/gradle-8.2.1-all.zip/gradle-8.10.2-all.zip/g' gradle/wrapper/gradle-wrapper.properties
-          sed -i 's/gradle-8.2.1-bin.zip/gradle-8.10.2-all.zip/g' gradle/wrapper/gradle-wrapper.properties
-          echo "--- Verified gradle-wrapper.properties ---"
-          cat gradle/wrapper/gradle-wrapper.properties
-          echo "------------------------------------------"
           chmod +x gradlew
           ./gradlew assembleDebug
 
