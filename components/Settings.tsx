@@ -11,10 +11,13 @@ const Settings: React.FC = () => {
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const [downloading, setDownloading] = useState(false);
+
   const handleCheckUpdates = async () => {
     setChecking(true);
     setUpdateStatus('idle');
     setErrorMessage(null);
+    setUpdateInfo(null);
     
     const result = await checkUpdates();
     
@@ -25,15 +28,34 @@ const Settings: React.FC = () => {
         setUpdateStatus('available');
       } else {
         setUpdateStatus('latest');
-        // Reset status after 5 seconds
         setTimeout(() => setUpdateStatus('idle'), 5000);
       }
     } else if (result.error) {
       setUpdateStatus('error');
       setErrorMessage(result.error);
-    } else {
-      setUpdateStatus('latest');
-      setTimeout(() => setUpdateStatus('idle'), 5000);
+    }
+  };
+
+  const handleDownload = async () => {
+    if (!updateInfo) return;
+    
+    setDownloading(true);
+    
+    // Use direct APK URL if available, otherwise fallback to release page
+    const url = updateInfo.apkUrl || updateInfo.downloadUrl;
+    
+    try {
+      // On Android, opening a direct APK link with '_system' triggers the system downloader
+      // which runs in the background (notification bar) without leaving the app.
+      window.open(url, '_system');
+      
+      // Keep the "Downloading" state for a few seconds to give feedback
+      setTimeout(() => {
+        setDownloading(false);
+      }, 3000);
+    } catch (err) {
+      setDownloading(false);
+      window.open(updateInfo.downloadUrl, '_system');
     }
   };
 
@@ -58,19 +80,19 @@ const Settings: React.FC = () => {
           <div className="flex items-center justify-between mb-4">
             <div className="flex flex-col">
               <h3 className="font-kids text-indigo-900">Software Update</h3>
-              <span className="text-[8px] text-slate-400 font-mono">Build: V1.0.6-DEBUG-0403</span>
+              <span className="text-[8px] text-slate-400 font-mono">Build: V{packageJson.version}-RELEASE</span>
             </div>
             <button 
               onClick={handleCheckUpdates}
-              disabled={checking}
+              disabled={checking || downloading}
               className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-bold transition-all ${
-                checking 
+                (checking || downloading)
                 ? 'bg-slate-100 text-slate-400 cursor-not-allowed' 
                 : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100 active:scale-95'
               }`}
             >
-              <RefreshCw className={`w-4 h-4 ${checking ? 'animate-spin' : ''}`} />
-              {checking ? 'Checking...' : 'Check Now'}
+              <RefreshCw className={`w-4 h-4 ${(checking || downloading) ? 'animate-spin' : ''}`} />
+              {checking ? 'Checking...' : downloading ? 'Downloading...' : 'Check Now'}
             </button>
           </div>
           
@@ -110,12 +132,29 @@ const Settings: React.FC = () => {
                   </p>
                 )}
                 <button 
-                  onClick={() => window.open(updateInfo.url, '_system')}
-                  className="flex items-center justify-center gap-2 w-full bg-indigo-600 text-white py-2 rounded-xl text-xs font-bold hover:bg-indigo-700 transition-colors"
+                  onClick={handleDownload}
+                  disabled={downloading}
+                  className={`flex items-center justify-center gap-2 w-full py-2 rounded-xl text-xs font-bold transition-all ${
+                    downloading 
+                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                    : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-100'
+                  }`}
                 >
-                  <ExternalLink className="w-3 h-3" />
-                  Download Now
+                  {downloading ? (
+                    <>
+                      <RefreshCw className="w-3 h-3 animate-spin" />
+                      Starting Download...
+                    </>
+                  ) : (
+                    <>
+                      <ExternalLink className="w-3 h-3" />
+                      Download & Install Now
+                    </>
+                  )}
                 </button>
+                <p className="text-[9px] text-slate-400 mt-2 text-center">
+                  The update will download in the background. Check your notification bar.
+                </p>
               </motion.div>
             )}
 
