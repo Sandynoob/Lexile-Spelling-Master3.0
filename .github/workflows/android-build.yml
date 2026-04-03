@@ -120,10 +120,8 @@ jobs:
         if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
         uses: softprops/action-gh-release@v2
         with:
-          # 优先使用 Release 事件触发时的标签名，如果没有（比如手动触发），则使用 package.json 里的版本号
-          tag_name: ${{ github.event.release.tag_name || format('v{0}', steps.get_version.outputs.VERSION) }}
+          tag_name: v${{ steps.get_version.outputs.VERSION || '1.0.7' }}
           files: android/app/build/outputs/apk/debug/app-debug.apk
-          # 确保如果文件已存在则覆盖，而不是报错
-          overwrite: true
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
