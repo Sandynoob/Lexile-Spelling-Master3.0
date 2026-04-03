@@ -1,6 +1,6 @@
 {
   "name": "lexile-spelling-master",
-  "version": "1.0.9",
+  "version": "1.0.8",
   "description": "Lexile based spelling assessment app",
   "main": "index.js",
   "scripts": {
@@ -11,12 +11,11 @@
     "add-android": "npx cap add android"
   },
   "dependencies": {
-    "@capacitor-community/admob": "^6.0.0",
     "@capacitor/android": "^6.0.0",
-    "@capacitor/browser": "^6.0.0",
+    "@capacitor/browser": "^8.0.3",
     "@capacitor/cli": "^6.0.0",
     "@capacitor/core": "^6.0.0",
-    "@capacitor/filesystem": "^6.0.0",
+    "@capacitor/filesystem": "^8.1.2",
     "@google/genai": "^1.48.0",
     "@tailwindcss/vite": "^4.2.2",
     "lucide-react": "^1.7.0",
@@ -28,11 +27,11 @@
     "tsx": "^4.21.0"
   },
   "devDependencies": {
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
-    "@vitejs/plugin-react": "^4.3.4",
-    "esbuild": "^0.25.0",
-    "typescript": "^5.7.3",
-    "vite": "^6.2.0"
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "esbuild": "^0.27.0",
+    "typescript": "^5.0.0",
+    "vite": "^8.0.1"
   }
 }

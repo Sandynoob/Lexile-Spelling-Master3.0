@@ -1,0 +1,19 @@
+
+{
+  "name": "Lexile Spelling Master",
+  "short_name": "LexileMaster",
+  "description": "Assess and improve your spelling based on Lexile levels.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#4f46e5",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "logo512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
