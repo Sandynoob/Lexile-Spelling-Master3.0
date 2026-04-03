@@ -19,26 +19,35 @@ const Settings: React.FC = () => {
     const result = await checkUpdates();
     
     setChecking(false);
-    if (result.available && result.info) {
-      setUpdateStatus('available');
+    if (result.info) {
       setUpdateInfo(result.info);
+      if (result.available) {
+        setUpdateStatus('available');
+      } else {
+        setUpdateStatus('latest');
+        // Reset status after 5 seconds
+        setTimeout(() => setUpdateStatus('idle'), 5000);
+      }
     } else if (result.error) {
       setUpdateStatus('error');
       setErrorMessage(result.error);
     } else {
       setUpdateStatus('latest');
-      // Reset status after 3 seconds
-      setTimeout(() => setUpdateStatus('idle'), 3000);
+      setTimeout(() => setUpdateStatus('idle'), 5000);
     }
   };
 
   return (
     <div className="p-6 flex flex-col items-center animate-pop">
-      <div className="w-20 h-20 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg mb-6">
-        <span className="text-white font-kids text-4xl">L</span>
+      <div className="flex flex-col items-center mb-8">
+        <div className="w-20 h-20 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg mb-3">
+          <span className="text-white font-kids text-4xl">L</span>
+        </div>
+        <h2 className="font-kids text-2xl text-indigo-900 leading-tight text-center">
+          Lexile<br />Spelling Master
+        </h2>
       </div>
       
-      <h2 className="font-kids text-2xl text-indigo-900 mb-2">Lexile Master</h2>
       <div className="flex flex-col items-center mb-8">
         <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Current Version</p>
         <p className="text-indigo-600 font-kids text-lg">V{packageJson.version}</p>
@@ -71,10 +80,17 @@ const Settings: React.FC = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="flex items-center gap-2 text-emerald-600 text-xs font-bold bg-emerald-50 p-3 rounded-xl"
+                className="flex flex-col gap-1 text-emerald-600 text-xs font-bold bg-emerald-50 p-3 rounded-xl"
               >
-                <CheckCircle2 className="w-4 h-4" />
-                <span>You are using the latest version!</span>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>You are using the latest version!</span>
+                </div>
+                {updateInfo && (
+                  <span className="text-[10px] text-emerald-500/70 ml-6">
+                    Server Version: V{updateInfo.version}
+                  </span>
+                )}
               </motion.div>
             )}
 
