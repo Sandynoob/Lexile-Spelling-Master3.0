@@ -18,5 +18,13 @@ export default defineConfig({
   build: {
     outDir: 'www',
     emptyOutDir: true,
+    rollupOptions: {
+      external: ['@capacitor-community/admob'],
+      output: {
+        globals: {
+          '@capacitor-community/admob': 'capacitorAdMob'
+        }
+      }
+    }
   }
 });
