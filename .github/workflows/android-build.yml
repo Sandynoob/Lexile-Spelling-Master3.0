@@ -57,9 +57,11 @@ jobs:
           ICON_SRC="public/logo512.png"
           if [ -f "$ICON_SRC" ]; then
             echo "Syncing $ICON_SRC to Android resources..."
-            # 覆盖所有的 mipmap 文件夹中的 ic_launcher.png
+            # 覆盖所有的 mipmap 文件夹中的 ic_launcher.png 和 ic_launcher_round.png
             find android/app/src/main/res -name "ic_launcher.png" -exec cp "$ICON_SRC" {} \;
             find android/app/src/main/res -name "ic_launcher_round.png" -exec cp "$ICON_SRC" {} \;
+            # 同时也覆盖 ic_launcher_foreground.png (适配现代 Android 的自适应图标)
+            find android/app/src/main/res -name "ic_launcher_foreground.png" -exec cp "$ICON_SRC" {} \;
             echo "Icon sync complete."
           else
             echo "Warning: $ICON_SRC not found, skipping icon sync."
