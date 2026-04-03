@@ -46,14 +46,6 @@ jobs:
           if [ ! -d "android" ]; then
             npx cap add android
           fi
-          
-          # 根本性解决 Gradle 8.2.1 与 bcprov-jdk18on-1.79.jar 的冲突问题
-          # 必须在 cap sync 和 cap update 之前修改，因为 update 会触发 gradle 运行
-          if [ -f "android/gradle/wrapper/gradle-wrapper.properties" ]; then
-            sed -i 's/gradle-8.2.1-all.zip/gradle-8.10.2-all.zip/g' android/gradle/wrapper/gradle-wrapper.properties
-            sed -i 's/gradle-8.0.2-all.zip/gradle-8.10.2-all.zip/g' android/gradle/wrapper/gradle-wrapper.properties
-          fi
-
           # 强制同步并更新 Android 项目
           npx cap sync android
           npx cap update android
@@ -100,6 +92,12 @@ jobs:
       - name: Build APK
         run: |
           cd android
+          # 强制在打包前修改 Gradle 版本，防止被 cap update 覆盖重置
+          sed -i 's/gradle-8.2.1-all.zip/gradle-8.10.2-all.zip/g' gradle/wrapper/gradle-wrapper.properties
+          sed -i 's/gradle-8.2.1-bin.zip/gradle-8.10.2-all.zip/g' gradle/wrapper/gradle-wrapper.properties
+          echo "--- Verified gradle-wrapper.properties ---"
+          cat gradle/wrapper/gradle-wrapper.properties
+          echo "------------------------------------------"
           chmod +x gradlew
           ./gradlew assembleDebug
 
