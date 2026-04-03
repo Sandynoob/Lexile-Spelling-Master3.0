@@ -2,9 +2,9 @@ import { AdMob, BannerAdOptions, BannerAdSize, BannerAdPosition, BannerAdPluginE
 import { Capacitor } from '@capacitor/core';
 
 export const AdMobService = {
-  // 广告 ID
-  bannerAdId: Capacitor.getPlatform() === 'android' ? 'ca-app-pub-9053893199466734/4831734476' : 'test',
-  interstitialAdId: Capacitor.getPlatform() === 'android' ? 'ca-app-pub-9053893199466734/4448591090' : 'test',
+  // Google 官方测试广告 ID
+  bannerAdId: 'ca-app-pub-3940256099942544/6300978111',
+  interstitialAdId: 'ca-app-pub-3940256099942544/1033173712',
 
   async initialize() {
     try {
