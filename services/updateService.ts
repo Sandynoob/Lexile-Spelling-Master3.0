@@ -40,6 +40,7 @@ export const checkUpdates = async (): Promise<{ available: boolean; info?: Updat
         const data: UpdateInfo = await response.json();
         if (data && data.version) {
           const isAvailable = compareVersions(data.version, CURRENT_VERSION) > 0;
+          console.log(`Comparing server version ${data.version} with local version ${CURRENT_VERSION}. Available: ${isAvailable}`);
           return { 
             available: isAvailable, 
             info: {
@@ -70,8 +71,8 @@ export const checkUpdates = async (): Promise<{ available: boolean; info?: Updat
  * Returns 1 if v1 > v2, -1 if v1 < v2, 0 if v1 == v2.
  */
 function compareVersions(v1: string, v2: string): number {
-  const parts1 = v1.split('.').map(Number);
-  const parts2 = v2.split('.').map(Number);
+  const parts1 = v1.trim().split('.').map(Number);
+  const parts2 = v2.trim().split('.').map(Number);
   
   for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
     const p1 = parts1[i] || 0;
