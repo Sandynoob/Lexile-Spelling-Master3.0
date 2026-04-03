@@ -44,7 +44,10 @@ const Settings: React.FC = () => {
       <div className="w-full space-y-4">
         <div className="bg-white p-5 rounded-3xl border border-indigo-50 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-kids text-indigo-900">Software Update</h3>
+            <div className="flex flex-col">
+              <h3 className="font-kids text-indigo-900">Software Update</h3>
+              <span className="text-[8px] text-slate-400 font-mono">Build: V1.0.4-DEBUG-0402</span>
+            </div>
             <button 
               onClick={handleCheckUpdates}
               disabled={checking}
