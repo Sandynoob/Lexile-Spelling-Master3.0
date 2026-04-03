@@ -73,16 +73,28 @@ jobs:
             echo "Warning: $ICON_SRC not found, skipping icon sync."
           fi
 
+      - name: Get Version
+        id: get_version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Sync Version from package.json
         run: |
-          VERSION_NAME=$(node -p "require('./package.json').version")
+          VERSION_NAME=${{ steps.get_version.outputs.VERSION }}
           VERSION_CODE=$(date +%s)
-          # 更加鲁棒的替换逻辑，确保匹配到 defaultConfig 块中的版本设置
-          sed -i "s/versionCode [0-9]*/versionCode $VERSION_CODE/g" android/app/build.gradle
-          sed -i "s/versionName \".*\"/versionName \"$VERSION_NAME\"/g" android/app/build.gradle
-          echo "Synced version $VERSION_NAME ($VERSION_CODE) to Android"
-          # 验证替换是否成功
-          grep "version" android/app/build.gradle
+          echo "Build version: $VERSION_NAME"
+          echo "Build code: $VERSION_CODE"
+          # 更加鲁棒的替换逻辑
+          if [ -f "android/app/build.gradle" ]; then
+            sed -i "s/versionCode [0-9]*/versionCode $VERSION_CODE/g" android/app/build.gradle
+            sed -i "s/versionName \".*\"/versionName \"$VERSION_NAME\"/g" android/app/build.gradle
+            echo "Synced version $VERSION_NAME ($VERSION_CODE) to Android"
+            echo "build.gradle version lines:"
+            grep -E "versionCode|versionName" android/app/build.gradle || true
+          else
+            echo "Warning: android/app/build.gradle not found, skipping version sync."
+          fi
 
       - name: Build APK
         run: |
@@ -94,8 +106,6 @@ jobs:
         if: env.HAS_SIGNING_CONFIG == 'true'
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/release-key.jks
-          # 使用 apksigner 进行签名 (Android SDK 自带)
-          # 寻找 apksigner 路径
           APKSIGNER=$(find $ANDROID_SDK_ROOT/build-tools -name apksigner | sort -r | head -n 1)
           $APKSIGNER sign --ks android/app/release-key.jks \
             --ks-key-alias ${{ secrets.ANDROID_KEY_ALIAS }} \
@@ -103,7 +113,6 @@ jobs:
             --key-pass pass:${{ secrets.ANDROID_KEY_PASSWORD }} \
             --out android/app/build/outputs/apk/debug/app-signed.apk \
             android/app/build/outputs/apk/debug/app-debug.apk
-          # 替换原始文件
           mv android/app/build/outputs/apk/debug/app-signed.apk android/app/build/outputs/apk/debug/app-debug.apk
         env:
           HAS_SIGNING_CONFIG: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
@@ -114,10 +123,12 @@ jobs:
           name: app-debug.apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
 
-      - name: Upload APK to Release
-        if: github.event_name == 'release'
+      - name: Update Release Assets
+        if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ steps.get_version.outputs.VERSION || '1.0.7' }}
           files: android/app/build/outputs/apk/debug/app-debug.apk
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
