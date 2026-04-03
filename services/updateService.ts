@@ -9,17 +9,16 @@ export interface UpdateInfo {
 const CURRENT_VERSION = packageJson.version;
 
 export const checkUpdates = async (): Promise<{ available: boolean; info?: UpdateInfo; error?: string }> => {
-  // Hardcoded fallback to ensure it works in GitHub builds without .env
+  // Hardcoded URLs to ensure it works without any .env or GitHub Secrets
   const REPO_PATH = 'Sandynoob/Lexile-Spelling-Master2.0';
   const JSDELIVR_URL = `https://cdn.jsdelivr.net/gh/${REPO_PATH}@main/version.json`;
-  const GITHUB_RAW_URL = `https://raw.githubusercontent.com/Sandynoob/Lexile-Spelling-Master2.0/refs/heads/main/version.json`;
+  const GITHUB_RAW_URL = `https://raw.githubusercontent.com/${REPO_PATH}/main/version.json`;
   
-  // Try JSDelivr first, then Raw GitHub as fallback
+  // Use hardcoded mirrors directly
   const urlsToTry = [
-    import.meta.env.VITE_UPDATE_URL,
     JSDELIVR_URL,
     GITHUB_RAW_URL
-  ].filter(Boolean) as string[];
+  ];
 
   console.log('Update URLs to try:', urlsToTry);
 
@@ -53,7 +52,7 @@ export const checkUpdates = async (): Promise<{ available: boolean; info?: Updat
   
   return { 
     available: false, 
-    error: `Update check failed on all mirrors. Last error: ${lastError}. Please check if ${REPO_PATH}/version.json exists on GitHub.` 
+    error: `[V1.0.4-NEW] Update check failed. Last error: ${lastError}. Mirror: ${REPO_PATH}` 
   };
 };
 
