@@ -11,7 +11,7 @@ export const AdMobService = {
       if (Capacitor.isNativePlatform()) {
         await AdMob.initialize({
           testingDevices: [], // 生产环境请留空
-          initializeForTesting: false,
+          initializeForTesting: true,
         });
         console.log('AdMob initialized');
       }
@@ -28,7 +28,7 @@ export const AdMobService = {
           adSize: BannerAdSize.BANNER,
           position: BannerAdPosition.BOTTOM_CENTER,
           margin: 0,
-          isTesting: false,
+          isTesting: true,
         };
         await AdMob.showBanner(options);
       }
@@ -52,7 +52,7 @@ export const AdMobService = {
       if (Capacitor.isNativePlatform()) {
         await AdMob.prepareInterstitial({
           adId: this.interstitialAdId,
-          isTesting: false,
+          isTesting: true,
         });
       }
     } catch (error) {

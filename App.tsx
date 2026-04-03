@@ -164,7 +164,7 @@ const App: React.FC = () => {
   const isNavVisible = gameState !== GameState.PLAYING;
 
   return (
-    <div className="min-h-[100dvh] h-[100dvh] flex flex-col p-4 md:p-6 selection:bg-indigo-100 transition-colors overflow-hidden relative bg-slate-50">
+    <div className="h-full w-full flex flex-col p-4 md:p-6 selection:bg-indigo-100 transition-colors overflow-hidden relative bg-slate-50 pb-[70px]">
       
       {/* Header - Dynamically scales. Hidden/Reduced to maximize game area */}
       <header className={`flex-none w-full mx-auto transition-all duration-500 ease-in-out flex flex-col items-center justify-center z-20 
@@ -193,7 +193,7 @@ const App: React.FC = () => {
       </header>
 
       {/* Main Content Area - Strictly constrained to remaining space */}
-      <main className="flex-1 w-full max-w-5xl mx-auto relative z-10 overflow-hidden flex flex-col bg-white/40 rounded-[2rem] shadow-inner border border-white/50 mb-4">
+      <main className="flex-1 min-h-0 w-full max-w-5xl mx-auto relative z-10 overflow-hidden flex flex-col bg-white/40 rounded-[2rem] shadow-inner border border-white/50 mb-4">
         {isLoading && (
           <div className="absolute inset-0 z-50 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center">
             <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
@@ -201,13 +201,13 @@ const App: React.FC = () => {
           </div>
         )}
         {gameState === GameState.START && (
-          <div className="flex-1 overflow-y-auto no-scrollbar py-4">
+          <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar py-4">
             <LexileSelector onSelect={startTest} />
           </div>
         )}
 
         {gameState === GameState.HISTORY && (
-          <div className="flex-1 overflow-y-auto no-scrollbar py-4">
+          <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar py-4">
             <History 
               records={historyRecords} 
               onBack={resetGame} 
@@ -216,13 +216,13 @@ const App: React.FC = () => {
         )}
 
         {gameState === GameState.SETTINGS && (
-          <div className="flex-1 overflow-y-auto no-scrollbar py-4">
+          <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar py-4">
             <Settings />
           </div>
         )}
 
         {gameState === GameState.PLAYING && currentWords.length > 0 && (
-          <div className="flex-1 flex flex-col h-full overflow-hidden p-2 md:p-4">
+          <div className="flex-1 min-h-0 flex flex-col h-full overflow-hidden p-2 md:p-4">
             <SpellingGame 
               words={currentWords} 
               onFinish={handleFinish} 
@@ -232,7 +232,7 @@ const App: React.FC = () => {
         )}
 
         {gameState === GameState.FINISHED && scoreData && (
-          <div className="flex-1 overflow-y-auto no-scrollbar py-4">
+          <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar py-4">
             <Results 
               scoreData={scoreData} 
               onRestart={resetGame} 
