@@ -13,14 +13,13 @@ async function generateIcon() {
         <rect x="0" y="0" width="512" height="512" fill="white" />
         
         <!-- Purple Squircle -->
-        <rect x="128" y="80" width="256" height="256" rx="60" fill="${purple}" />
+        <rect x="32" y="32" width="448" height="448" rx="100" fill="${purple}" />
         
-        <!-- Letter L (Cursive style approximation using paths) -->
-        <text x="256" y="260" font-family="cursive, 'Brush Script MT', 'Apple Chancery'" font-size="160" fill="white" text-anchor="middle">L</text>
+        <!-- Letter L -->
+        <text x="256" y="280" font-family="cursive, 'Brush Script MT', 'Apple Chancery'" font-size="220" fill="white" text-anchor="middle">L</text>
         
-        <!-- Text Below -->
-        <text x="256" y="400" font-family="cursive, 'Brush Script MT', 'Apple Chancery'" font-size="48" fill="${purple}" text-anchor="middle">Lexile</text>
-        <text x="256" y="460" font-family="cursive, 'Brush Script MT', 'Apple Chancery'" font-size="48" fill="${purple}" text-anchor="middle">Spelling Master</text>
+        <!-- Text Inside -->
+        <text x="256" y="410" font-family="cursive, 'Brush Script MT', 'Apple Chancery'" font-size="36" fill="white" text-anchor="middle">Lexile Spelling Master</text>
     </svg>
     `;
 
