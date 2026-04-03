@@ -165,9 +165,9 @@ const SpellingGame: React.FC<SpellingGameProps> = ({ words, onFinish, onBack }) 
                      ${segment ? 'bg-white rounded-t-xl shadow-md border-b-indigo-500 translate-y-[-2px]' : 'bg-slate-50/50 rounded-t-lg'}
                    `}
                    style={{
-                     minWidth: `clamp(3.5rem, ${90 / segmentCount}vw, ${segmentCount > 5 ? '4.5rem' : '7rem'})`,
-                     height: `clamp(4.5rem, 14vh, ${segmentCount > 5 ? '5.5rem' : '8rem'})`,
-                     fontSize: `clamp(1.5rem, ${50 / segmentCount}vw, 2.8rem)`
+                     minWidth: `clamp(3rem, ${80 / segmentCount}vw, ${segmentCount > 5 ? '4rem' : '6rem'})`,
+                     height: `clamp(4rem, 12vh, ${segmentCount > 5 ? '5rem' : '7rem'})`,
+                     fontSize: `clamp(1.4rem, ${40 / segmentCount}vw, 2.4rem)`
                    }}
                 >
                   {segment || ''}
@@ -185,9 +185,9 @@ const SpellingGame: React.FC<SpellingGameProps> = ({ words, onFinish, onBack }) 
                 className="pool-button bg-white rounded-xl md:rounded-2xl shadow-md border-2 border-slate-50 text-indigo-800 px-3
                            font-black hover:bg-indigo-50 hover:translate-y-[-4px] hover:shadow-lg active:scale-90 transition-all"
                 style={{
-                  minWidth: `clamp(3.8rem, 16vw, 6rem)`,
-                  height: `clamp(3.8rem, 16vw, 6rem)`,
-                  fontSize: `clamp(1.4rem, 7vw, 2.4rem)`
+                  minWidth: `clamp(4.5rem, 20vw, 7rem)`,
+                  height: `clamp(4.5rem, 20vw, 7rem)`,
+                  fontSize: `clamp(1.8rem, 10vw, 3rem)`
                 }}
               >
                 {segment}
