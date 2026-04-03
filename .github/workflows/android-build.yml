@@ -49,6 +49,11 @@ jobs:
           # 强制同步并更新 Android 项目
           npx cap sync android
           npx cap update android
+          
+          # Fix Gradle bug with bcprov-jdk18on 1.79 by upgrading Gradle wrapper to 8.10.2
+          if [ -f "android/gradle/wrapper/gradle-wrapper.properties" ]; then
+            sed -i 's/gradle-8.2.1-all.zip/gradle-8.10.2-all.zip/g' android/gradle/wrapper/gradle-wrapper.properties
+          fi
 
       - name: Sync App Icon (logo512.png to Android)
         run: |
