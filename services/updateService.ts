@@ -3,12 +3,13 @@ import packageJson from '../package.json';
 export interface UpdateInfo {
   version: string;
   downloadUrl: string;
+  apkUrl?: string;
   releaseNotes?: string;
 }
 
 const CURRENT_VERSION = packageJson.version;
 
-export const checkUpdates = async (): Promise<{ available: boolean; info?: { version: string; url: string; releaseNotes?: string }; error?: string }> => {
+export const checkUpdates = async (): Promise<{ available: boolean; info?: UpdateInfo; error?: string }> => {
   // Hardcoded URLs to ensure it works without any .env or GitHub Secrets
   const REPO_PATH = 'Sandynoob/Lexile-Spelling-Master2.0';
   const JSDELIVR_URL = `https://cdn.jsdelivr.net/gh/${REPO_PATH}@main/version.json`;
@@ -16,8 +17,8 @@ export const checkUpdates = async (): Promise<{ available: boolean; info?: { ver
   
   // Use hardcoded mirrors directly
   const urlsToTry = [
-    JSDELIVR_URL,
-    GITHUB_RAW_URL
+    GITHUB_RAW_URL,
+    JSDELIVR_URL
   ];
 
   console.log('Update URLs to try:', urlsToTry);
@@ -43,7 +44,8 @@ export const checkUpdates = async (): Promise<{ available: boolean; info?: { ver
             available: isAvailable, 
             info: {
               version: data.version,
-              url: data.downloadUrl, // Map downloadUrl to url
+              downloadUrl: data.downloadUrl,
+              apkUrl: data.apkUrl,
               releaseNotes: data.releaseNotes
             } 
           };
@@ -59,7 +61,7 @@ export const checkUpdates = async (): Promise<{ available: boolean; info?: { ver
   
   return { 
     available: false, 
-    error: `[V1.0.4-NEW] Update check failed. Last error: ${lastError}. Mirror: ${REPO_PATH}` 
+    error: `Update check failed. Last error: ${lastError}. Mirror: ${REPO_PATH}` 
   };
 };
 
