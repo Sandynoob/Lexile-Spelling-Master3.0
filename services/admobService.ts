@@ -2,9 +2,9 @@ import { AdMob, BannerAdOptions, BannerAdSize, BannerAdPosition, BannerAdPluginE
 import { Capacitor } from '@capacitor/core';
 
 export const AdMobService = {
-  // Google 官方测试广告 ID
-  bannerAdId: 'ca-app-pub-3940256099942544/6300978111',
-  interstitialAdId: 'ca-app-pub-3940256099942544/1033173712',
+  // 正式广告 ID
+  bannerAdId: 'ca-app-pub-9053893199466734/4831734476',
+  interstitialAdId: 'ca-app-pub-9053893199466734/4448591090',
 
   async initialize() {
     try {
@@ -12,7 +12,7 @@ export const AdMobService = {
       if (Capacitor.isNativePlatform()) {
         await AdMob.initialize({
           testingDevices: [], // 生产环境请留空
-          initializeForTesting: true,
+          initializeForTesting: false, // 生产环境设为 false
         });
         console.log('AdMobService: Initialized successfully');
       } else {
@@ -27,12 +27,15 @@ export const AdMobService = {
     try {
       console.log(`AdMobService: Attempting to show banner at ${position}...`);
       if (Capacitor.isNativePlatform()) {
+        // 先隐藏再显示，确保位置更新
+        await AdMob.hideBanner();
+        
         const options: BannerAdOptions = {
           adId: this.bannerAdId,
           adSize: BannerAdSize.BANNER,
           position: position,
           margin: 0,
-          isTesting: true,
+          isTesting: false, // 生产环境设为 false
         };
         await AdMob.showBanner(options);
         console.log('AdMobService: Banner shown successfully');
