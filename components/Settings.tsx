@@ -4,6 +4,8 @@ import { RefreshCw, CheckCircle2, AlertCircle, ExternalLink } from 'lucide-react
 import { motion, AnimatePresence } from 'motion/react';
 import { checkUpdates, UpdateInfo } from '../services/updateService';
 import packageJson from '../package.json';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { FileOpener } from '@capacitor-community/file-opener';
 
 const Settings: React.FC = () => {
   const [checking, setChecking] = useState(false);
@@ -41,20 +43,40 @@ const Settings: React.FC = () => {
     
     setDownloading(true);
     
-    // Use direct APK URL if available, otherwise fallback to release page
     const url = updateInfo.apkUrl || updateInfo.downloadUrl;
     
     try {
-      // On Android, opening a direct APK link with '_system' triggers the system downloader
-      // which runs in the background (notification bar) without leaving the app.
-      window.open(url, '_system');
+      // Download the APK
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to download APK');
       
-      // Keep the "Downloading" state for a few seconds to give feedback
-      setTimeout(() => {
-        setDownloading(false);
-      }, 3000);
-    } catch (err) {
+      const blob = await response.blob();
+      const reader = new FileReader();
+      
+      const base64Data = await new Promise<string>((resolve, reject) => {
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+      
+      const fileName = 'update.apk';
+      const result = await Filesystem.writeFile({
+        path: fileName,
+        data: base64Data,
+        directory: Directory.Cache
+      });
+      
+      // Install the APK
+      await FileOpener.open({
+        filePath: result.uri,
+        contentType: 'application/vnd.android.package-archive'
+      });
+      
       setDownloading(false);
+    } catch (err) {
+      console.error('Update failed:', err);
+      setDownloading(false);
+      // Fallback to browser
       window.open(updateInfo.downloadUrl, '_system');
     }
   };

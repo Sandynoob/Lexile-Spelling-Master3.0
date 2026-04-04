@@ -43,15 +43,28 @@ jobs:
 
       - name: Create Android Project
         run: |
-          # 如果目錄不存在則創建
           if [ ! -d "android" ]; then
             npx cap add android
           fi
-          # 生成圖標
-          npx capacitor-assets generate --android --icon public/logo512.png
-          # 同步插件與 Web 代碼
+          # 强制同步并更新 Android 项目
           npx cap sync android
           npx cap update android
+
+      - name: Sync App Icon (logo512.png to Android)
+        run: |
+          # 自动将 public/logo512.png 覆盖到 Android 的所有图标目录
+          ICON_SRC="public/logo512.png"
+          if [ -f "$ICON_SRC" ]; then
+            echo "Syncing $ICON_SRC to Android resources..."
+            # 覆盖所有的 mipmap 文件夹中的 ic_launcher.png 和 ic_launcher_round.png
+            find android/app/src/main/res -name "ic_launcher.png" -exec cp "$ICON_SRC" {} \;
+            find android/app/src/main/res -name "ic_launcher_round.png" -exec cp "$ICON_SRC" {} \;
+            # 同时也覆盖 ic_launcher_foreground.png (适配现代 Android 的自适应图标)
+            find android/app/src/main/res -name "ic_launcher_foreground.png" -exec cp "$ICON_SRC" {} \;
+            echo "Icon sync complete."
+          else
+            echo "Warning: $ICON_SRC not found, skipping icon sync."
+          fi
 
       - name: Get Version
         id: get_version
@@ -72,7 +85,9 @@ jobs:
           if [ -f "$MANIFEST" ]; then
             # 在 </application> 標籤前插入 AdMob 所需的 meta-data
             sed -i "/<\/application>/i \        <meta-data android:name=\"com.google.android.gms.ads.APPLICATION_ID\" android:value=\"$ADMOB_APP_ID\"\/>" $MANIFEST
-            echo "AdMob ID injected into $MANIFEST"
+            # 在 </manifest> 標籤前插入 REQUEST_INSTALL_PACKAGES 權限
+            sed -i "/<\/manifest>/i \    <uses-permission android:name=\"android.permission.REQUEST_INSTALL_PACKAGES\" />" $MANIFEST
+            echo "AdMob ID and Install Permission injected into $MANIFEST"
           fi
           
           # 3. 物理修改 root build.gradle，加入強制降級 bcprov 的代碼
