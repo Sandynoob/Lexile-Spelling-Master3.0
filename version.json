@@ -1,6 +1,6 @@
 {
-  "version": "1.1.1",
-  "downloadUrl": "https://github.com/Sandynoob/Lexile-Spelling-Master3.0/releases/latest",
+  "version": "1.1.0",
+  "downloadUrl": "https://github.com/Sandynoob/Lexile-Spelling-Master3.0/releases/download/v1.1.0/app-debug.apk",
   "apkUrl": "https://github.com/Sandynoob/Lexile-Spelling-Master3.0/releases/download/v1.1.0/app-debug.apk",
   "releaseNotes": "修复了部分 Bug，优化了性能。"
 }
