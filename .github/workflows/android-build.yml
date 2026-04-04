@@ -47,6 +47,8 @@ jobs:
           if [ ! -d "android" ]; then
             npx cap add android
           fi
+          # 生成圖標
+          npx capacitor-assets generate --android --icon public/logo512.png
           # 同步插件與 Web 代碼
           npx cap sync android
           npx cap update android

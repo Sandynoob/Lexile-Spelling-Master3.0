@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { GameState, LexileRange, Word, ScoreData, TestRecord, WordResult } from './types';
 import { LEXILE_WORDS } from './constants';
+import { BannerAdPosition } from '@capacitor-community/admob';
 import LexileSelector from './components/LexileSelector';
 import SpellingGame from './components/SpellingGame';
 import Results from './components/Results';
@@ -40,7 +41,6 @@ const App: React.FC = () => {
 
     // Initialize AdMob
     AdMobService.initialize().then(() => {
-      AdMobService.showBanner();
       AdMobService.prepareInterstitial();
     });
 
@@ -48,6 +48,16 @@ const App: React.FC = () => {
       AdMobService.hideBanner();
     };
   }, []);
+
+  useEffect(() => {
+    if (gameState === GameState.PLAYING) {
+      // 在测试页时，将广告显示在底部
+      AdMobService.showBanner(BannerAdPosition.BOTTOM_CENTER);
+    } else {
+      // 在其他页面（Home/History/Settings），将广告显示在顶部
+      AdMobService.showBanner(BannerAdPosition.TOP_CENTER);
+    }
+  }, [gameState]);
 
   const saveToHistory = (record: TestRecord) => {
     const newHistory = [record, ...historyRecords].slice(0, MAX_HISTORY_SESSIONS);
@@ -164,7 +174,7 @@ const App: React.FC = () => {
   const isNavVisible = gameState !== GameState.PLAYING;
 
   return (
-    <div className="h-full w-full flex flex-col p-4 md:p-6 selection:bg-indigo-100 transition-colors overflow-hidden relative bg-slate-50">
+    <div className={`h-full w-full flex flex-col p-4 md:p-6 selection:bg-indigo-100 transition-colors overflow-hidden relative bg-slate-50 ${gameState !== GameState.PLAYING ? 'pt-[60px]' : ''}`}>
       
       {/* Header - Dynamically scales. Hidden/Reduced to maximize game area */}
       <header className={`flex-none w-full mx-auto transition-all duration-500 ease-in-out flex flex-col items-center justify-center z-20 
@@ -281,15 +291,6 @@ const App: React.FC = () => {
             <span className="text-[10px] font-black uppercase tracking-widest">Settings</span>
           </button>
         </nav>
-      )}
-
-      {/* Footer - Minimalized to prevent push-out */}
-      {!isNavVisible && (
-        <footer className="flex-none h-[4vh] text-center z-20 flex items-center justify-center opacity-30 mt-2">
-          <p className="text-[8px] md:text-[10px] text-slate-500 font-bold tracking-widest uppercase">
-            Safe & Secure Assessment Environment
-          </p>
-        </footer>
       )}
 
       {/* Background Decor */}

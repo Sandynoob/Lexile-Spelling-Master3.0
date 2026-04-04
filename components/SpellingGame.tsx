@@ -197,6 +197,13 @@ const SpellingGame: React.FC<SpellingGameProps> = ({ words, onFinish, onBack }) 
         </div>
       </div>
 
+      {/* Footer - Safe & Secure */}
+      <div className="flex-none h-[4vh] text-center z-20 flex items-center justify-center opacity-30 mt-2">
+        <p className="text-[8px] md:text-[10px] text-slate-500 font-bold tracking-widest uppercase">
+          Safe & Secure Assessment Environment
+        </p>
+      </div>
+
       {/* Exit Dialog */}
       {showExitConfirm && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-6">
@@ -211,11 +218,8 @@ const SpellingGame: React.FC<SpellingGameProps> = ({ words, onFinish, onBack }) 
         </div>
       )}
 
-      {/* 4. Brand Identifier */}
-      <div className="flex-none py-2 text-center opacity-20 select-none">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-900">
-          Lexile Spelling Master
-        </p>
+      {/* 4. Brand Identifier - Removed */}
+      <div className="flex-none py-2 text-center opacity-0 select-none h-0">
       </div>
 
       <style>{`

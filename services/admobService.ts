@@ -23,14 +23,14 @@ export const AdMobService = {
     }
   },
 
-  async showBanner() {
+  async showBanner(position: BannerAdPosition = BannerAdPosition.BOTTOM_CENTER) {
     try {
-      console.log('AdMobService: Attempting to show banner...');
+      console.log(`AdMobService: Attempting to show banner at ${position}...`);
       if (Capacitor.isNativePlatform()) {
         const options: BannerAdOptions = {
           adId: this.bannerAdId,
           adSize: BannerAdSize.BANNER,
-          position: BannerAdPosition.BOTTOM_CENTER,
+          position: position,
           margin: 0,
           isTesting: true,
         };
@@ -48,9 +48,10 @@ export const AdMobService = {
     try {
       if (Capacitor.isNativePlatform()) {
         await AdMob.hideBanner();
+        console.log('AdMobService: Banner hidden');
       }
     } catch (error) {
-      console.error('Hide banner failed', error);
+      console.error('AdMobService: Hide banner failed', error);
     }
   },
 
