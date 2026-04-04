@@ -203,7 +203,7 @@ const App: React.FC = () => {
       </header>
 
       {/* Main Content Area - Strictly constrained to remaining space */}
-      <main className="flex-1 w-full max-w-5xl mx-auto relative z-10 overflow-hidden flex flex-col bg-white/40 rounded-[2rem] shadow-inner border border-white/50 mb-4">
+      <main className={`w-full max-w-5xl mx-auto relative z-10 overflow-hidden flex flex-col bg-white/40 rounded-[2rem] shadow-inner border border-white/50 mb-4 ${gameState === GameState.PLAYING ? 'flex-none h-[calc(100vh-160px)]' : 'flex-1'}`}>
         {isLoading && (
           <div className="absolute inset-0 z-50 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center">
             <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
