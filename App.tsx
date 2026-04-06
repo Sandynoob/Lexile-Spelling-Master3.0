@@ -53,9 +53,6 @@ const App: React.FC = () => {
     if (gameState === GameState.PLAYING) {
       // 在测试页时，将广告显示在底部
       AdMobService.showBanner(BannerAdPosition.BOTTOM_CENTER);
-    } else {
-      // 在其他页面（Home/History/Settings），将广告显示在顶部
-      AdMobService.showBanner(BannerAdPosition.TOP_CENTER);
     }
   }, [gameState]);
 
