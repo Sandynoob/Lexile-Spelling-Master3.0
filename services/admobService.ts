@@ -6,25 +6,41 @@ export const AdMobService = {
   bannerAdId: 'ca-app-pub-9053893199466734/4831734476',
   interstitialAdId: 'ca-app-pub-9053893199466734/4448591090',
 
+  isInitialized: false,
+  initPromise: null as Promise<void> | null,
+
   async initialize() {
-    try {
-      console.log('AdMobService: Initializing...');
-      if (Capacitor.isNativePlatform()) {
-        await AdMob.initialize({
-          testingDevices: [], // 生产环境请留空
-          initializeForTesting: false, // 生产环境设为 false
-        });
-        console.log('AdMobService: Initialized successfully');
-      } else {
-        console.log('AdMobService: Not a native platform, skipping initialization');
+    if (this.initPromise) return this.initPromise;
+    
+    this.initPromise = (async () => {
+      try {
+        console.log('AdMobService: Initializing...');
+        if (Capacitor.isNativePlatform()) {
+          await AdMob.initialize({
+            testingDevices: [],
+            initializeForTesting: false,
+          });
+          this.isInitialized = true;
+          console.log('AdMobService: Initialized successfully');
+        }
+      } catch (error) {
+        console.error('AdMobService: Initialization failed', error);
       }
-    } catch (error) {
-      console.error('AdMobService: Initialization failed', error);
-    }
+    })();
+    
+    return this.initPromise;
   },
 
   async showBanner(position: BannerAdPosition = BannerAdPosition.BOTTOM_CENTER) {
     try {
+      // 确保初始化完成
+      await this.initialize();
+      
+      if (!this.isInitialized && Capacitor.isNativePlatform()) {
+        console.warn('AdMobService: Cannot show banner, initialization failed');
+        return;
+      }
+
       console.log(`AdMobService: Attempting to show banner at ${position}...`);
       if (Capacitor.isNativePlatform()) {
         // 先隐藏再显示，确保位置更新
@@ -63,7 +79,7 @@ export const AdMobService = {
       if (Capacitor.isNativePlatform()) {
         await AdMob.prepareInterstitial({
           adId: this.interstitialAdId,
-          isTesting: true,
+          isTesting: false,
         });
       }
     } catch (error) {
