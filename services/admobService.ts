@@ -31,6 +31,8 @@ export const AdMobService = {
     return this.initPromise;
   },
 
+  currentPosition: null as BannerAdPosition | null,
+
   async showBanner(position: BannerAdPosition = BannerAdPosition.BOTTOM_CENTER) {
     try {
       // 确保初始化完成
@@ -41,6 +43,12 @@ export const AdMobService = {
         return;
       }
 
+      // 如果位置没变，且广告已经在显示，则不重复操作，防止闪烁和死锁
+      if (this.currentPosition === position) {
+        console.log('AdMobService: Banner already at requested position, skipping');
+        return;
+      }
+
       console.log(`AdMobService: Attempting to show banner at ${position}...`);
       if (Capacitor.isNativePlatform()) {
         // 先隐藏再显示，确保位置更新
@@ -48,18 +56,20 @@ export const AdMobService = {
         
         const options: BannerAdOptions = {
           adId: this.bannerAdId,
-          adSize: BannerAdSize.ADAPTIVE_BANNER,
+          adSize: BannerAdSize.BANNER,
           position: position,
-          margin: position === BannerAdPosition.TOP_CENTER ? 40 : 0,
+          margin: 0,
           isTesting: false,
         };
         await AdMob.showBanner(options);
+        this.currentPosition = position;
         console.log('AdMobService: Banner shown successfully');
       } else {
         console.log('AdMobService: Not a native platform, skipping banner');
       }
     } catch (error) {
       console.error('AdMobService: Show banner failed', error);
+      this.currentPosition = null;
     }
   },
 
