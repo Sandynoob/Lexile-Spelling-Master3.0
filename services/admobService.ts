@@ -2,8 +2,8 @@ import { AdMob, BannerAdOptions, BannerAdSize, BannerAdPosition, BannerAdPluginE
 import { Capacitor } from '@capacitor/core';
 
 export const AdMobService = {
-  // 正式广告 ID
-  bannerAdId: 'ca-app-pub-9053893199466734/4831734476',
+  // 官方测试 ID (用于调试)
+  bannerAdId: 'ca-app-pub-3940256099942544/6300978111',
   interstitialAdId: 'ca-app-pub-9053893199466734/4448591090',
 
   isInitialized: false,
@@ -18,7 +18,7 @@ export const AdMobService = {
         if (Capacitor.isNativePlatform()) {
           await AdMob.initialize({
             testingDevices: [],
-            initializeForTesting: false,
+            initializeForTesting: true,
           });
           this.isInitialized = true;
           console.log('AdMobService: Initialized successfully');
@@ -59,7 +59,7 @@ export const AdMobService = {
           adSize: BannerAdSize.BANNER,
           position: position,
           margin: 0,
-          isTesting: false,
+          isTesting: true,
         };
         await AdMob.showBanner(options);
         this.currentPosition = position;
