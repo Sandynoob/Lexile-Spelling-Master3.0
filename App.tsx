@@ -50,9 +50,14 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // 回归最初最稳定的模式：只在底部显示
-    AdMobService.showBanner(BannerAdPosition.BOTTOM_CENTER);
-  }, []);
+    if (gameState === GameState.PLAYING) {
+      // 只在测试页显示广告
+      AdMobService.showBanner(BannerAdPosition.BOTTOM_CENTER);
+    } else {
+      // 其他页面隐藏广告，确保不遮挡导航
+      AdMobService.hideBanner();
+    }
+  }, [gameState]);
 
   const saveToHistory = (record: TestRecord) => {
     const newHistory = [record, ...historyRecords].slice(0, MAX_HISTORY_SESSIONS);
@@ -169,7 +174,7 @@ const App: React.FC = () => {
   const isNavVisible = gameState !== GameState.PLAYING;
 
   return (
-    <div className="h-full w-full flex flex-col p-4 md:p-6 selection:bg-indigo-100 transition-colors overflow-hidden relative bg-slate-50">
+    <div className={`h-full w-full flex flex-col p-4 md:p-6 selection:bg-indigo-100 transition-colors overflow-hidden relative bg-slate-50 ${gameState === GameState.PLAYING ? 'pb-[70px]' : ''}`}>
       
       {/* Header - Dynamically scales. Hidden/Reduced to maximize game area */}
       <header className={`flex-none w-full mx-auto transition-all duration-500 ease-in-out flex flex-col items-center justify-center z-20 
