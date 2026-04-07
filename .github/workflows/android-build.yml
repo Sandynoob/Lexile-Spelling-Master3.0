@@ -1,4 +1,3 @@
-
 name: Build Android APK
 
 on:
@@ -52,45 +51,51 @@ jobs:
 
       - name: Sync App Icon (logo512.png to Android)
         run: |
-          # 自动将 public/logo512.png 覆盖到 Android 的所有图标目录
           ICON_SRC="public/logo512.png"
           if [ -f "$ICON_SRC" ]; then
-            echo "Syncing $ICON_SRC to Android resources..."
-            # 覆盖所有的 mipmap 文件夹中的 ic_launcher.png 和 ic_launcher_round.png
             find android/app/src/main/res -name "ic_launcher.png" -exec cp "$ICON_SRC" {} \;
             find android/app/src/main/res -name "ic_launcher_round.png" -exec cp "$ICON_SRC" {} \;
-            # 同时也覆盖 ic_launcher_foreground.png (适配现代 Android 的自适应图标)
             find android/app/src/main/res -name "ic_launcher_foreground.png" -exec cp "$ICON_SRC" {} \;
-            echo "Icon sync complete."
-          else
-            echo "Warning: $ICON_SRC not found, skipping icon sync."
           fi
 
-      - name: Get Version
+      - name: Get Version from package.json
         id: get_version
         run: |
-          VERSION=$(node -p "require('./package.json').version")
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          # 提取 version 字符串 (用于 versionName)
+          V_NAME=$(node -p "require('./package.json').version")
+          # 提取 versionCode 整数 (用于 Google Play 识别)
+          V_CODE=$(node -p "require('./package.json').versionCode")
+          
+          echo "VERSION_NAME=$V_NAME" >> $GITHUB_OUTPUT
+          echo "VERSION_CODE=$V_CODE" >> $GITHUB_OUTPUT
+          echo "Detected Version: $V_NAME, Code: $V_CODE"
 
-      - name: Force Fix Gradle, AdMob and Build
+      - name: Force Fix Gradle, AdMob and Apply Manual Versions
         run: |
           cd android
-          # 1. 物理修改 wrapper，確保強制使用 8.10.2 (解決 bcprov 1.79 導致的編譯失敗)
+          
+          # --- 注入手动设置的版本号 ---
+          V_NAME="${{ steps.get_version.outputs.VERSION_NAME }}"
+          V_CODE="${{ steps.get_version.outputs.VERSION_CODE }}"
+          
+          if [ -f "app/build.gradle" ]; then
+            sed -i "s/versionCode [0-9]*/versionCode $V_CODE/" app/build.gradle
+            sed -i "s/versionName \".*\"/versionName \"$V_NAME\"/" app/build.gradle
+            echo "Successfully applied Code $V_CODE and Name $V_NAME to build.gradle"
+          fi
+          
+          # 1. 物理修改 wrapper
           sed -i 's/gradle-8.2.1-all.zip/gradle-8.10.2-all.zip/g' gradle/wrapper/gradle-wrapper.properties
           
-          # 2. 【核心修復】自動注入 AdMob APP ID 到 AndroidManifest.xml
-          # 這是你的正式 APP ID: ca-app-pub-9053893199466734~3107879879
+          # 2. 注入 AdMob APP ID
           MANIFEST="app/src/main/AndroidManifest.xml"
           ADMOB_APP_ID="ca-app-pub-9053893199466734~3107879879"
           if [ -f "$MANIFEST" ]; then
-            # 在 </application> 標籤前插入 AdMob 所需的 meta-data
             sed -i "/<\/application>/i \        <meta-data android:name=\"com.google.android.gms.ads.APPLICATION_ID\" android:value=\"$ADMOB_APP_ID\"\/>" $MANIFEST
-            # 在 </manifest> 標籤前插入 REQUEST_INSTALL_PACKAGES 權限
             sed -i "/<\/manifest>/i \    <uses-permission android:name=\"android.permission.REQUEST_INSTALL_PACKAGES\" />" $MANIFEST
-            echo "AdMob ID and Install Permission injected into $MANIFEST"
           fi
           
-          # 3. 物理修改 root build.gradle，加入強制降級 bcprov 的代碼
+          # 3. 物理修改 root build.gradle
           cat <<EOF >> build.gradle
           allprojects {
               configurations.all {
@@ -101,14 +106,14 @@ jobs:
           }
           EOF
           
-          # 4. 更新 variables.gradle (將 minSdkVersion 提升到 23 以符合 AdMob 要求)
+          # 4. 更新 variables.gradle
           if [ -f "variables.gradle" ]; then
             sed -i "s/minSdkVersion = [0-9]*/minSdkVersion = 23/g" variables.gradle
             sed -i "s/compileSdkVersion = [0-9]*/compileSdkVersion = 35/g" variables.gradle
             sed -i "s/targetSdkVersion = [0-9]*/targetSdkVersion = 35/g" variables.gradle
           fi
 
-          # 5. 增加編譯記憶體，防止日誌被截斷
+          # 5. 增加編譯記憶體
           echo "org.gradle.jvmargs=-Xmx3072m" >> gradle.properties
           
           # 6. 執行編譯
@@ -141,7 +146,7 @@ jobs:
         if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.get_version.outputs.VERSION || '1.0.7' }}
+          tag_name: v${{ steps.get_version.outputs.VERSION_NAME }}
           files: android/app/build/outputs/apk/debug/app-debug.apk
         continue-on-error: true
         env:
