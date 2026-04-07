@@ -48,10 +48,10 @@ export const AdMobService = {
         
         const options: BannerAdOptions = {
           adId: this.bannerAdId,
-          adSize: BannerAdSize.BANNER,
+          adSize: BannerAdSize.ADAPTIVE_BANNER,
           position: position,
-          margin: 0,
-          isTesting: false, // 生产环境设为 false
+          margin: position === BannerAdPosition.TOP_CENTER ? 40 : 0,
+          isTesting: false,
         };
         await AdMob.showBanner(options);
         console.log('AdMobService: Banner shown successfully');
