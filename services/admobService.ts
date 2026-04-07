@@ -2,8 +2,8 @@ import { AdMob, BannerAdOptions, BannerAdSize, BannerAdPosition, BannerAdPluginE
 import { Capacitor } from '@capacitor/core';
 
 export const AdMobService = {
-  // 官方测试 ID (用于调试)
-  bannerAdId: 'ca-app-pub-3940256099942544/6300978111',
+  // 正式广告 ID
+  bannerAdId: 'ca-app-pub-9053893199466734/4831734476',
   interstitialAdId: 'ca-app-pub-9053893199466734/4448591090',
 
   isInitialized: false,
@@ -72,7 +72,7 @@ export const AdMobService = {
           adSize: BannerAdSize.BANNER,
           position: position,
           margin: 0,
-          isTesting: true, // 调试阶段强制开启测试模式
+          isTesting: false,
         };
         
         await AdMob.showBanner(options);
