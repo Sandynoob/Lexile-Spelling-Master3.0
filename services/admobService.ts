@@ -3,7 +3,7 @@ import { Capacitor } from '@capacitor/core';
 
 export const AdMobService = {
   // 正式广告 ID
-  bannerAdId: 'ca-app-pub-3940256099942544/6300978111',
+  bannerAdId: 'ca-app-pub-9053893199466734/4831734476',
   interstitialAdId: 'ca-app-pub-9053893199466734/4448591090',
 
   isInitialized: false,
@@ -91,7 +91,6 @@ export const AdMobService = {
 
   async hideBanner() {
     if (this.isProcessing) return;
-    // 注意：这里不再检查 isBannerVisible，而是强制尝试移除，确保彻底干净
     
     try {
       this.isProcessing = true;
