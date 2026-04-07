@@ -43,17 +43,11 @@ export const AdMobService = {
         return;
       }
 
-      // 如果位置没变，且广告已经在显示，则不重复操作，防止闪烁和死锁
-      if (this.currentPosition === position) {
-        console.log('AdMobService: Banner already at requested position, skipping');
-        return;
-      }
+      // 增加一个极小的延时，确保 SDK 状态稳定
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       console.log(`AdMobService: Attempting to show banner at ${position}...`);
       if (Capacitor.isNativePlatform()) {
-        // 先隐藏再显示，确保位置更新
-        await AdMob.hideBanner();
-        
         const options: BannerAdOptions = {
           adId: this.bannerAdId,
           adSize: BannerAdSize.BANNER,
