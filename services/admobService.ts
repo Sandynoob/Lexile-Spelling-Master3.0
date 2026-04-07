@@ -62,9 +62,9 @@ export const AdMobService = {
 
       console.log(`AdMobService: Showing banner at ${position}...`);
       if (Capacitor.isNativePlatform()) {
-        // 如果当前有广告在别处显示，先隐藏
+        // 如果当前有广告在显示，先彻底移除
         if (this.isBannerVisible) {
-          await AdMob.hideBanner();
+          await AdMob.removeBanner();
         }
 
         const options: BannerAdOptions = {
@@ -91,18 +91,22 @@ export const AdMobService = {
 
   async hideBanner() {
     if (this.isProcessing) return;
-    if (!this.isBannerVisible) return; // 如果已经隐藏，则不再调用
-
+    // 注意：这里不再检查 isBannerVisible，而是强制尝试移除，确保彻底干净
+    
     try {
       this.isProcessing = true;
       if (Capacitor.isNativePlatform()) {
-        await AdMob.hideBanner();
+        // 使用 removeBanner 彻底销毁视图，而不是隐藏
+        await AdMob.removeBanner();
         this.isBannerVisible = false;
         this.currentPosition = null;
-        console.log('AdMobService: Banner hidden');
+        console.log('AdMobService: Banner removed (destroyed)');
       }
     } catch (error) {
-      console.error('AdMobService: Hide banner failed', error);
+      // 如果移除失败（例如本来就没有广告），静默处理
+      console.log('AdMobService: No banner to remove or remove failed');
+      this.isBannerVisible = false;
+      this.currentPosition = null;
     } finally {
       this.isProcessing = false;
     }
