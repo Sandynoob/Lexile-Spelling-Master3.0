@@ -3,7 +3,7 @@ import { Capacitor } from '@capacitor/core';
 
 export const AdMobService = {
   // 正式广告 ID
-  bannerAdId: 'ca-app-pub-3940256099942544/6300978111',
+  bannerAdId: 'ca-app-pub-9053893199466734/4831734476',
   interstitialAdId: 'ca-app-pub-9053893199466734/4448591090',
 
   isInitialized: false,
