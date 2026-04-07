@@ -1,9 +1,7 @@
 name: Build Android APK
 
 on:
-  # 手動觸發
   workflow_dispatch:
-  # 當發佈或更新 Release 時觸發
   release:
     types: [published, edited]
 
@@ -45,11 +43,10 @@ jobs:
           if [ ! -d "android" ]; then
             npx cap add android
           fi
-          # 强制同步并更新 Android 项目
           npx cap sync android
           npx cap update android
 
-      - name: Sync App Icon (logo512.png to Android)
+      - name: Sync App Icon
         run: |
           ICON_SRC="public/logo512.png"
           if [ -f "$ICON_SRC" ]; then
@@ -61,27 +58,34 @@ jobs:
       - name: Get Version from package.json
         id: get_version
         run: |
-          # 提取 version 字符串 (用于 versionName)
-          V_NAME=$(node -p "require('./package.json').version")
-          # 提取 versionCode 整数 (用于 Google Play 识别)
-          V_CODE=$(node -p "require('./package.json').versionCode")
+          # 提取版本信息并设置默认值以防万一
+          V_NAME=$(node -e "console.log(require('./package.json').version || '1.0.0')")
+          V_CODE=$(node -e "console.log(require('./package.json').versionCode || 1)")
+          
+          echo "Debug: Extracted Name: $V_NAME"
+          echo "Debug: Extracted Code: $V_CODE"
           
           echo "VERSION_NAME=$V_NAME" >> $GITHUB_OUTPUT
           echo "VERSION_CODE=$V_CODE" >> $GITHUB_OUTPUT
-          echo "Detected Version: $V_NAME, Code: $V_CODE"
 
       - name: Force Fix Gradle, AdMob and Apply Manual Versions
         run: |
           cd android
           
-          # --- 注入手动设置的版本号 ---
           V_NAME="${{ steps.get_version.outputs.VERSION_NAME }}"
           V_CODE="${{ steps.get_version.outputs.VERSION_CODE }}"
           
+          echo "Applying to Android: Name=$V_NAME, Code=$V_CODE"
+          
+          # 修改 app/build.gradle
           if [ -f "app/build.gradle" ]; then
-            sed -i "s/versionCode [0-9]*/versionCode $V_CODE/" app/build.gradle
-            sed -i "s/versionName \".*\"/versionName \"$V_NAME\"/" app/build.gradle
-            echo "Successfully applied Code $V_CODE and Name $V_NAME to build.gradle"
+            # 使用 perl 确保替换精准
+            perl -i -pe "s/versionCode \d+/versionCode $V_CODE/g" app/build.gradle
+            perl -i -pe "s/versionName \".*\"/versionName \"$V_NAME\"/g" app/build.gradle
+            
+            echo "--- Verify build.gradle Content ---"
+            grep "versionCode" app/build.gradle | head -n 1
+            grep "versionName" app/build.gradle | head -n 1
           fi
           
           # 1. 物理修改 wrapper
@@ -95,7 +99,7 @@ jobs:
             sed -i "/<\/manifest>/i \    <uses-permission android:name=\"android.permission.REQUEST_INSTALL_PACKAGES\" />" $MANIFEST
           fi
           
-          # 3. 物理修改 root build.gradle
+          # 3. 物理修改 root build.gradle 加入 bcprov 强制降级
           cat <<EOF >> build.gradle
           allprojects {
               configurations.all {
@@ -113,10 +117,8 @@ jobs:
             sed -i "s/targetSdkVersion = [0-9]*/targetSdkVersion = 35/g" variables.gradle
           fi
 
-          # 5. 增加編譯記憶體
+          # 5. 编译
           echo "org.gradle.jvmargs=-Xmx3072m" >> gradle.properties
-          
-          # 6. 執行編譯
           chmod +x gradlew
           ./gradlew clean
           ./gradlew assembleDebug --no-daemon
