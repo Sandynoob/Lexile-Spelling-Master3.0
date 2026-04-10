@@ -11,7 +11,7 @@ const CURRENT_VERSION = packageJson.version;
 
 export const checkUpdates = async (): Promise<{ available: boolean; info?: UpdateInfo; error?: string }> => {
   // Hardcoded URLs to ensure it works without any .env or GitHub Secrets
-  const REPO_PATH = 'Sandynoob/Lexile-Spelling-Master2.0';
+  const REPO_PATH = 'Sandynoob/Lexile-Spelling-Master3.0';
   const JSDELIVR_URL = `https://cdn.jsdelivr.net/gh/${REPO_PATH}@main/version.json`;
   const GITHUB_RAW_URL = `https://raw.githubusercontent.com/${REPO_PATH}/main/version.json`;
   
